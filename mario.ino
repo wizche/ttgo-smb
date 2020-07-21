@@ -14,6 +14,8 @@ EventGroupHandle_t g_event_group = NULL;
 EventGroupHandle_t isr_group = NULL;
 bool lenergy = false;
 
+Gui *gui;
+
 void initWakeupTriggers(){
   AXP20X_Class *power = ttgo->power;
   BMA *sensor = ttgo->bma;
@@ -67,6 +69,8 @@ void low_energy()
         ttgo->displayWakeup();
         ttgo->rtc->syncToSystem();
         lv_disp_trig_activity(NULL);
+        gui->updateTime();
+        gui->updateBatteryLevel();
         ttgo->openBL();
         ttgo->bma->enableStepCountInterrupt();
     }
@@ -154,7 +158,8 @@ void setup()
     ttgo->rtc->syncToSystem();
     
     Serial.printf("%s\n", ttgo->rtc->formatDateTime());
-    setupGui();
+    gui = new Gui();
+    gui->setupGui();
 }
 
 void loop()

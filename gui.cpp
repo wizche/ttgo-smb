@@ -1,26 +1,6 @@
 #include "gui.h"
 
-static void lv_update_task(struct _lv_task_t *);
-static void event_handler(lv_obj_t *obj, lv_event_t event);
-static void sleep_task(struct _lv_task_t *data);
-
-void updateTime();
-void updateBatteryLevel();
-
-static lv_style_t timeStyle;
-
-static lv_obj_t *timeLabel = nullptr;
-static lv_obj_t *mainView = nullptr;
-static lv_obj_t *batteryLabel = nullptr;
-
-static ModTimeUnit modunit = ModTimeUnit::set;
-
-static int start_x, end_x, start_y, end_y = 0;
-
-static Mario *marioHour, *marioMinutes, *marioSeconds = nullptr;
-static Box *boxHour, *boxMinutes, *boxSeconds = nullptr;
-
-void setupGui() { 
+void Gui::setupGui() { 
 
   Serial.printf("Screensize: %dx%d\n", LV_HOR_RES, LV_VER_RES);
   lv_obj_t *scr = lv_scr_act();
@@ -42,7 +22,6 @@ void setupGui() {
   lv_img_set_src(img_bin, &world);
   lv_obj_align(img_bin, NULL, LV_ALIGN_CENTER, 0, 0);
 
-  
   timeLabel = lv_label_create(mainView, NULL);
   lv_label_set_recolor(timeLabel, true);
   lv_obj_align(timeLabel, NULL, LV_ALIGN_IN_BOTTOM_MID, 0, 0);
@@ -78,15 +57,17 @@ void setupGui() {
   lv_obj_align(batteryLabel, NULL, LV_ALIGN_IN_TOP_RIGHT, -5, 13);
   lv_obj_add_style(batteryLabel, LV_OBJ_PART_MAIN, &batteryStyle);
 
-  lv_task_create(lv_update_task, 1000, LV_TASK_PRIO_MID, NULL);
+  lv_task_create(Gui::lv_update_task, 1000, LV_TASK_PRIO_MID, this);
 
   updateTime();
   updateBatteryLevel();
 
-  lv_obj_set_event_cb(mainView, event_handler);
+  lv_obj_set_user_data(mainView, this);
+  lv_obj_set_event_cb(mainView, Gui::event_handler);
 }
 
-void updateTime() {
+void Gui::updateTime() {
+  Serial.println("Update time!");
   TTGOClass *ttgo = TTGOClass::getWatch();
   RTC_Date curr = ttgo->rtc->getDateTime();
   if(modunit != ModTimeUnit::set){
@@ -97,7 +78,6 @@ void updateTime() {
     else
       sprintf(buff, "%02d:#ff0000 %02d#:%02d", curr.hour, curr.minute, curr.second);
 
-    
     Serial.printf("Clock set mode...%s\n", buff);
     lv_label_set_text(timeLabel, buff);
     lv_obj_align(timeLabel, NULL, LV_ALIGN_IN_BOTTOM_MID, 0, 0);
@@ -119,7 +99,7 @@ void updateTime() {
   }  
 }
 
-void modifyTime(int increment) {
+void Gui::modifyTime(int increment) {
   TTGOClass *ttgo = TTGOClass::getWatch();
   RTC_Date curr = ttgo->rtc->getDateTime();
   if(modunit == ModTimeUnit::hour){
@@ -134,7 +114,7 @@ void modifyTime(int increment) {
   ttgo->rtc->setDateTime(curr.year, curr.month, curr.day, curr.hour, curr.minute, curr.second);
 }
 
-static Gestures process_gesture(lv_event_t event) {
+Gestures Gui::process_gesture(lv_event_t event) {
   lv_point_t pointAct;
   lv_indev_get_point(lv_indev_get_act(), &pointAct);
   if (event == LV_EVENT_PRESSED) {
@@ -163,7 +143,7 @@ static Gestures process_gesture(lv_event_t event) {
   }
 }
 
-void updateBatteryLevel()
+void Gui::updateBatteryLevel()
 {
     TTGOClass *ttgo = TTGOClass::getWatch();
     int p = ttgo->power->getBattPercentage();
@@ -171,34 +151,36 @@ void updateBatteryLevel()
     Serial.printf("Battery is %2d %%\n", p);
 }
 
-static void event_handler(lv_obj_t *obj, lv_event_t event)
+void Gui::event_handler(lv_obj_t *obj, lv_event_t event)
 {
-  switch (process_gesture(event)) {
+  Gui *gui = (Gui*)lv_obj_get_user_data_ptr(obj);
+  switch (gui->process_gesture(event)) {
     case Gestures::right:
-      Serial.printf(" swipe right\n ");
-      modunit = ModTimeUnit(abs(modunit - 1) % (ModTimeUnit::minute + 1));
-      Serial.printf("Unit: %d\n", modunit);
+      Serial.printf("swipe right\n ");
+      gui->modunit = ModTimeUnit(abs(gui->modunit - 1) % (ModTimeUnit::minute + 1));
+      Serial.printf("Unit: %d\n", gui->modunit);
       break;
     case Gestures::left:
-      Serial.printf(" swipe left\n ");
-      modunit = ModTimeUnit((modunit + 1) % (ModTimeUnit::minute + 1));
-      Serial.printf("Unit: %d\n", modunit);
+      Serial.printf("swipe left\n ");
+      gui->modunit = ModTimeUnit((gui->modunit + 1) % (ModTimeUnit::minute + 1));
+      Serial.printf("Unit: %d\n", gui->modunit);
       break;
     case Gestures::up:
-        Serial.printf(" swipe up\n ");
-        modifyTime(1);
-        break;
+      Serial.printf("swipe up\n ");
+      gui->modifyTime(1);
+      break;
     case Gestures::down:
-        Serial.printf(" swipe down\n ");
-        modifyTime(-1);
-        break;
+      Serial.printf("swipe down\n ");
+      gui->modifyTime(-1);
+      break;
     default:
       break;
       //Serial.printf("No gesture detected!");
   }
 }
 
-static void lv_update_task(struct _lv_task_t *data)
+void Gui::lv_update_task(struct _lv_task_t *task)
 {
-  updateTime();
+  Gui *gui = (Gui*)task->user_data;
+  gui->updateTime();
 }
