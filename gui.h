@@ -6,11 +6,10 @@
 #include "mario.hpp"
 #include "box.hpp"
 
-LV_FONT_DECLARE(emulogic_12);
-//LV_FONT_DECLARE(emulogic_14);
-LV_FONT_DECLARE(emulogic_16);
+LV_FONT_DECLARE(emulogic_10);
 LV_IMG_DECLARE(world);
 LV_IMG_DECLARE(box);
+LV_IMG_DECLARE(coin);
 
 class Gui
 {
@@ -18,9 +17,12 @@ class Gui
     lv_style_t timeStyle;
     lv_obj_t *timeLabel = nullptr;
     lv_obj_t *mainView = nullptr;
-    lv_obj_t *batteryLabel = nullptr;
+    lv_obj_t *batteryLabelValue = nullptr;
+    lv_obj_t *stepLabelValue = nullptr;
+    lv_obj_t *coinsLabel = nullptr;
     
     int start_x, end_x, start_y, end_y = 0;
+    unsigned int wakeUpCounter = 0;
     
     Mario *marioHour, *marioMinutes, *marioSeconds = nullptr;
     Box *boxHour, *boxMinutes, *boxSeconds = nullptr;
@@ -38,6 +40,8 @@ class Gui
     void setupGui();
     void updateTime();
     void updateBatteryLevel();
+    void updateStepCounter(unsigned int steps);
+    void updateWakeupCount();
   
 };
 

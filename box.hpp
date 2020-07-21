@@ -1,7 +1,7 @@
 #include "config.h"
 
 LV_IMG_DECLARE(box);
-LV_FONT_DECLARE(emulogic_12);
+LV_FONT_DECLARE(emulogic_11);
 
 class Box {
     private:
@@ -31,7 +31,7 @@ class Box {
           static lv_style_t mainStyle;
           lv_style_init(&mainStyle);
           lv_style_set_border_width(&mainStyle, LV_STATE_DEFAULT, 0);
-          lv_style_set_text_font(&mainStyle, LV_STATE_DEFAULT, &emulogic_12);
+          lv_style_set_text_font(&mainStyle, LV_STATE_DEFAULT, &emulogic_11);
           lv_style_set_text_color(&mainStyle, LV_OBJ_PART_MAIN, LV_COLOR_WHITE);
           // TODO: fix transparency issue
           lv_style_set_bg_color(&mainStyle, LV_OBJ_PART_MAIN, lv_color_hex(0x6b8cff));

@@ -12,7 +12,7 @@ void Gui::setupGui() {
   lv_obj_add_style(scr, LV_OBJ_PART_MAIN, &mainStyle);
   
   lv_style_copy(&timeStyle, &mainStyle);
-  lv_style_set_text_font(&timeStyle, LV_STATE_DEFAULT, &emulogic_16);
+  lv_style_set_text_font(&timeStyle, LV_STATE_DEFAULT, &emulogic_11);
   mainView = lv_cont_create(scr, NULL);
   
   lv_obj_add_style(mainView, LV_OBJ_PART_MAIN, &timeStyle);
@@ -47,15 +47,47 @@ void Gui::setupGui() {
   
   boxSeconds = new Box(mainView, 126, 107);
   boxSeconds->render(marioSeconds->getJumpDurationMs(), curr.second);
-  
-  // battery
-  static lv_style_t batteryStyle;
-  lv_style_copy(&batteryStyle, &mainStyle);
-  lv_style_set_text_font(&batteryStyle, LV_STATE_DEFAULT, &emulogic_12);
 
-  batteryLabel = lv_label_create(mainView, NULL);
-  lv_obj_align(batteryLabel, NULL, LV_ALIGN_IN_TOP_RIGHT, -5, 13);
-  lv_obj_add_style(batteryLabel, LV_OBJ_PART_MAIN, &batteryStyle);
+  // header
+  static lv_style_t headerStyle;
+  lv_style_copy(&headerStyle, &mainStyle);
+  lv_style_set_text_font(&headerStyle, LV_STATE_DEFAULT, &emulogic_10);
+  
+  // step counter
+  lv_obj_t *stepLabel = lv_label_create(mainView, NULL);
+  lv_obj_align(stepLabel, NULL, LV_ALIGN_IN_TOP_LEFT, 10, 10);
+  lv_obj_add_style(stepLabel, LV_OBJ_PART_MAIN, &headerStyle);
+  lv_label_set_align(stepLabel, LV_LABEL_ALIGN_LEFT);
+  lv_label_set_text(stepLabel, "MARIO");
+
+  stepLabelValue = lv_label_create(mainView, NULL);
+  lv_obj_align(stepLabelValue, NULL, LV_ALIGN_IN_TOP_LEFT, 10, 22);
+  lv_obj_add_style(stepLabelValue, LV_OBJ_PART_MAIN, &headerStyle);
+  lv_label_set_align(stepLabelValue, LV_LABEL_ALIGN_LEFT);
+  lv_label_set_text(stepLabelValue, "000000");
+
+  // wakeup counter (coins)
+  lv_obj_t *coinImg = lv_img_create(mainView, NULL);
+  lv_img_set_src(coinImg, &coin);
+  lv_obj_align(coinImg, NULL, LV_ALIGN_IN_TOP_LEFT, 90, 22);
+  
+  coinsLabel = lv_label_create(mainView, NULL);
+  lv_obj_align(coinsLabel, NULL, LV_ALIGN_IN_TOP_LEFT, 102, 22);
+  lv_obj_add_style(coinsLabel, LV_OBJ_PART_MAIN, &headerStyle);
+  lv_label_set_align(coinsLabel, LV_LABEL_ALIGN_CENTER);
+  lv_label_set_text(coinsLabel, "*00");
+ 
+  // battery
+  lv_obj_t *wtflabel = lv_label_create(mainView, NULL);
+  lv_obj_add_style(wtflabel, LV_OBJ_PART_MAIN, &headerStyle);
+  lv_obj_align(wtflabel, NULL, LV_ALIGN_IN_TOP_RIGHT, -10, 10);
+  lv_label_set_align(wtflabel, LV_LABEL_ALIGN_RIGHT);
+  lv_label_set_text(wtflabel, "TIME");
+  
+  batteryLabelValue = lv_label_create(mainView, NULL);
+  lv_obj_align(batteryLabelValue, NULL, LV_ALIGN_IN_TOP_RIGHT, -10, 22);
+  lv_obj_add_style(batteryLabelValue, LV_OBJ_PART_MAIN, &headerStyle);
+  lv_label_set_align(batteryLabelValue, LV_LABEL_ALIGN_RIGHT);
 
   lv_task_create(Gui::lv_update_task, 1000, LV_TASK_PRIO_MID, this);
 
@@ -67,7 +99,6 @@ void Gui::setupGui() {
 }
 
 void Gui::updateTime() {
-  Serial.println("Update time!");
   TTGOClass *ttgo = TTGOClass::getWatch();
   RTC_Date curr = ttgo->rtc->getDateTime();
   if(modunit != ModTimeUnit::set){
@@ -147,9 +178,34 @@ void Gui::updateBatteryLevel()
 {
     TTGOClass *ttgo = TTGOClass::getWatch();
     int p = ttgo->power->getBattPercentage();
-    lv_label_set_text(batteryLabel, (String(p) + "%").c_str());
+    lv_label_set_text(batteryLabelValue, String(p).c_str());
+    lv_label_set_align(batteryLabelValue, LV_LABEL_ALIGN_RIGHT);
+    lv_obj_align(batteryLabelValue, NULL, LV_ALIGN_IN_TOP_RIGHT, -10, 22);
     Serial.printf("Battery is %2d %%\n", p);
 }
+
+void Gui::updateStepCounter(unsigned int steps)
+{
+  char buff[7];
+  sprintf(buff, "%06u", steps);
+  lv_label_set_text(stepLabelValue, buff);
+  lv_obj_align(stepLabelValue, NULL, LV_ALIGN_IN_TOP_LEFT, 10, 22);
+  Serial.printf("Steps %06d\n", steps);
+}
+
+void Gui::updateWakeupCount()
+{
+  if(wakeUpCounter > 255){
+    wakeUpCounter = 0;
+  }
+  wakeUpCounter += 1;
+  
+  char buff[4];
+  sprintf(buff, "*%02u", wakeUpCounter);
+  lv_label_set_text(coinsLabel, buff);
+  lv_obj_align(coinsLabel, NULL, LV_ALIGN_IN_TOP_LEFT, 102, 22);
+}
+
 
 void Gui::event_handler(lv_obj_t *obj, lv_event_t event)
 {

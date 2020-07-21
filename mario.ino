@@ -71,6 +71,8 @@ void low_energy()
         lv_disp_trig_activity(NULL);
         gui->updateTime();
         gui->updateBatteryLevel();
+        gui->updateStepCounter(ttgo->bma->getCounter());
+        gui->updateWakeupCount();
         ttgo->openBL();
         ttgo->bma->enableStepCountInterrupt();
     }
@@ -209,6 +211,7 @@ void loop()
           //! setp counter
           if (ttgo->bma->isStepCounter()) {
               Serial.printf("Stepcounter: %d\n", ttgo->bma->getCounter());
+              gui->updateStepCounter(ttgo->bma->getCounter());
           }
           break;
       case Q_EVENT_AXP_INT:
