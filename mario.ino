@@ -264,7 +264,7 @@ void loop()
         }
     }
 
-    if (lv_disp_get_inactive_time(NULL) < DEFAULT_SCREEN_TIMEOUT)
+    if (ttgo->power->isVBUSPlug() || lv_disp_get_inactive_time(NULL) < DEFAULT_SCREEN_TIMEOUT)
     {
         lv_task_handler();
     }
