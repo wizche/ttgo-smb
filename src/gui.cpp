@@ -8,6 +8,7 @@ void Gui::setupGui()
   static lv_style_t mainStyle;
   lv_style_init(&mainStyle);
   lv_style_set_text_color(&mainStyle, LV_OBJ_PART_MAIN, LV_COLOR_WHITE);
+  lv_style_set_bg_color(&mainStyle, LV_OBJ_PART_MAIN, lv_color_hex(0x6b8cff));
   lv_style_set_border_width(&mainStyle, LV_STATE_DEFAULT, 0);
   lv_obj_add_style(scr, LV_OBJ_PART_MAIN, &mainStyle);
 
@@ -90,7 +91,7 @@ void Gui::setupGui()
   lv_label_set_align(batteryLabelValue, LV_LABEL_ALIGN_RIGHT);
 
   // date
-  Cloud *dateCloud = new Cloud(mainView, 140, 50);
+  Cloud *dateCloud = new Cloud(mainView, 120, 50);
   dateCloud->render("23.07");
 
 
