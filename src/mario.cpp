@@ -14,13 +14,13 @@ int Mario::getJumpDurationMs()
 
 void Mario::render()
 {
-    static lv_style_t mainStyle;
-    lv_style_init(&mainStyle);
-    lv_style_set_border_width(&mainStyle, LV_STATE_DEFAULT, 0);
+    static lv_style_t marioStyle;
+    lv_style_init(&marioStyle);
+    lv_style_set_border_width(&marioStyle, LV_STATE_DEFAULT, 0);
     // TODO: fix transparency issue
-    lv_style_set_bg_color(&mainStyle, LV_OBJ_PART_MAIN, lv_color_hex(0x6b8cff));
+    lv_style_set_bg_color(&marioStyle, LV_OBJ_PART_MAIN, lv_color_hex(0x6b8cff));
     marioContainer = lv_cont_create(parent, NULL);
-    lv_obj_add_style(marioContainer, LV_OBJ_PART_MAIN, &mainStyle);
+    lv_obj_add_style(marioContainer, LV_OBJ_PART_MAIN, &marioStyle);
 
     lv_obj_set_pos(marioContainer, x, y);
     lv_obj_set_width(marioContainer, 23);

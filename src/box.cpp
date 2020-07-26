@@ -46,14 +46,23 @@ void Box::render(int animationDelayMs, int initialValue)
   lv_anim_set_playback_time(&boxAnim, HIT_DURATION_MS);
   lv_anim_set_delay(&boxAnim, animationDelayMs);
   lv_anim_set_time(&boxAnim, HIT_DURATION_MS);
+
+  // TODO: Is this the best way to deal with static class methods? 
+  // set_user_data actually create a copy (perf?)
+  lv_obj_set_user_data(boxContainer, this);
+  lv_anim_set_start_cb(&boxAnim, &Box::updateTime);
+}
+
+void Box::updateTime(struct _lv_anim_t* animstruct){
+  Box *box = (Box *)lv_obj_get_user_data((lv_obj_t *)animstruct->var);
+  char buff[3];
+  sprintf(buff, "%02d", box->currentValue);
+  lv_label_set_text(box->timeLabel, buff);
 }
 
 void Box::hit(int newValue)
 {
+  Serial.printf("Current time: %d\n", newValue);
   currentValue = newValue;
   lv_anim_start(&boxAnim);
-  delay(animationDelayMs);
-  char buff[3];
-  sprintf(buff, "%02d", newValue);
-  lv_label_set_text(timeLabel, buff);
 }

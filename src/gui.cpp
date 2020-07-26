@@ -89,6 +89,11 @@ void Gui::setupGui()
   lv_obj_add_style(batteryLabelValue, LV_OBJ_PART_MAIN, &headerStyle);
   lv_label_set_align(batteryLabelValue, LV_LABEL_ALIGN_RIGHT);
 
+  // date
+  Cloud *dateCloud = new Cloud(mainView, 140, 50);
+  dateCloud->render("23.07");
+
+
   lv_task_create(Gui::lv_update_task, 1000, LV_TASK_PRIO_MID, this);
 
   updateTime();

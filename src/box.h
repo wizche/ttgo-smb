@@ -23,6 +23,7 @@ class Box {
         int getCurrentValue();
         void render(int animationDelayMs, int initialValue);
         void hit(int newValue);
+        static void updateTime(struct _lv_anim_t* animstruct);
 };
 
 #endif //__BOX_H
