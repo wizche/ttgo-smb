@@ -5,7 +5,7 @@
 
 #include "box.h"
 #include "mario.h"
-#include "cloud.h"
+#include "clouds.h"
 
 LV_FONT_DECLARE(emulogic_10);
 LV_FONT_DECLARE(emulogic_11);

@@ -4,17 +4,18 @@
 #include "config.h"
 
 LV_IMG_DECLARE(cloud);
-LV_FONT_DECLARE(emulogic_11);
+LV_FONT_DECLARE(emulogic_10);
 
-class Cloud {
+class Clouds {
     private:
         lv_obj_t *parent;
-        lv_obj_t *cloudContainer;
-        lv_anim_t anim;
+        lv_obj_t *cloudDayContainer;
+        lv_obj_t *cloudMonthContainer;
+        lv_anim_t animDay,animMonth;
         int x, y = 0;
 
     public:
-        Cloud(lv_obj_t *mparent, int px, int py);
+        Clouds(lv_obj_t *mparent, int px, int py);
         void render(const char *datestring);
 };
 

@@ -78,7 +78,7 @@ void Gui::setupGui()
   lv_label_set_align(batteryLabelValue, LV_LABEL_ALIGN_RIGHT);
 
   // date
-  Cloud *dateCloud = new Cloud(scr, 120, 50);
+  Clouds *dateCloud = new Clouds(scr, 150, 70);
   dateCloud->render("23.07");
 
 

@@ -61,7 +61,6 @@ void Box::updateTime(struct _lv_anim_t* animstruct){
 
 void Box::hit(int newValue)
 {
-  Serial.printf("Current time: %d\n", newValue);
   currentValue = newValue;
   lv_anim_start(&boxAnim);
 }
