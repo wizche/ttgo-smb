@@ -1,6 +1,6 @@
 # Super Mario Bros themed T-Watch Firmware
 
-![Trailer](trailer.gif)
+![Preview](assets/preview.jpg)
 
 ## Credits
 * Emulogic - Truetype Font from Freaky Fonts
