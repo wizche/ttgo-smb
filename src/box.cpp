@@ -14,16 +14,15 @@ int Box::getCurrentValue()
 
 void Box::render(int animationDelayMs, int initialValue)
 {
+  static lv_style_t style;
+  lv_style_init(&style);
+  lv_style_set_text_color(&style, LV_STATE_DEFAULT, LV_COLOR_WHITE);
+  lv_style_set_text_font(&style, LV_STATE_DEFAULT, &emulogic_11);
+  lv_style_set_border_width(&style, LV_STATE_DEFAULT, 0);
+
   this->animationDelayMs = animationDelayMs;
-  static lv_style_t mainStyle;
-  lv_style_init(&mainStyle);
-  lv_style_set_border_width(&mainStyle, LV_STATE_DEFAULT, 0);
-  lv_style_set_text_font(&mainStyle, LV_STATE_DEFAULT, &emulogic_11);
-  lv_style_set_text_color(&mainStyle, LV_OBJ_PART_MAIN, LV_COLOR_WHITE);
-  // TODO: fix transparency issue
-  lv_style_set_bg_color(&mainStyle, LV_OBJ_PART_MAIN, lv_color_hex(0x6b8cff));
   boxContainer = lv_cont_create(parent, NULL);
-  lv_obj_add_style(boxContainer, LV_OBJ_PART_MAIN, &mainStyle);
+  lv_obj_add_style(boxContainer, LV_OBJ_PART_MAIN, &style);
   lv_obj_set_pos(boxContainer, x, y);
   lv_obj_set_width(boxContainer, 25);
   lv_obj_set_height(boxContainer, 25);

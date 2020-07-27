@@ -4,94 +4,81 @@ void Gui::setupGui()
 {
   Serial.printf("Screensize: %dx%d\n", LV_HOR_RES, LV_VER_RES);
   lv_obj_t *scr = lv_scr_act();
-
-  static lv_style_t mainStyle;
-  lv_style_init(&mainStyle);
-  lv_style_set_text_color(&mainStyle, LV_OBJ_PART_MAIN, LV_COLOR_WHITE);
-  lv_style_set_bg_color(&mainStyle, LV_OBJ_PART_MAIN, lv_color_hex(0x6b8cff));
-  lv_style_set_border_width(&mainStyle, LV_STATE_DEFAULT, 0);
-  lv_obj_add_style(scr, LV_OBJ_PART_MAIN, &mainStyle);
-
-  lv_style_copy(&timeStyle, &mainStyle);
-  lv_style_set_text_font(&timeStyle, LV_STATE_DEFAULT, &emulogic_11);
-  mainView = lv_cont_create(scr, NULL);
-
-  lv_obj_add_style(mainView, LV_OBJ_PART_MAIN, &timeStyle);
-  lv_obj_set_size(mainView, LV_HOR_RES, LV_VER_RES);
-
-  lv_obj_t *img_bin = lv_img_create(mainView, NULL);
+  
+  static lv_style_t style;
+  lv_style_init(&style);
+  lv_style_set_text_color(&style, LV_STATE_DEFAULT, LV_COLOR_WHITE);
+  lv_style_set_bg_color(&style, LV_STATE_DEFAULT, LV_COLOR_TRANSP);
+  lv_style_set_bg_opa(&style, LV_STATE_DEFAULT, LV_OPA_TRANSP);
+  lv_style_set_border_width(&style, LV_STATE_DEFAULT, 0);
+  lv_style_set_text_font(&style, LV_STATE_DEFAULT, &emulogic_10);
+  lv_obj_add_style(scr, LV_OBJ_PART_MAIN, &style);
+ 
+  lv_obj_t *img_bin = lv_img_create(scr, NULL);
   lv_img_set_src(img_bin, &world);
   lv_obj_align(img_bin, NULL, LV_ALIGN_CENTER, 0, 0);
 
-  timeLabel = lv_label_create(mainView, NULL);
+  timeLabel = lv_label_create(scr, NULL);
   lv_label_set_recolor(timeLabel, true);
   lv_obj_align(timeLabel, NULL, LV_ALIGN_IN_BOTTOM_MID, 0, 0);
   lv_obj_set_hidden(timeLabel, true);
 
   RTC_Date curr = TTGOClass::getWatch()->rtc->getDateTime();
   // Characters
-  marioHour = new Mario(mainView, 27, 170);
+  marioHour = new Mario(scr, 27, 170);
   marioHour->render();
 
-  marioMinutes = new Mario(mainView, 77, 170);
+  marioMinutes = new Mario(scr, 77, 170);
   marioMinutes->render();
 
-  marioSeconds = new Mario(mainView, 127, 170);
+  marioSeconds = new Mario(scr, 127, 170);
   marioSeconds->render();
 
   // Boxes
-  boxHour = new Box(mainView, 26, 107);
+  boxHour = new Box(scr, 26, 107);
   boxHour->render(marioHour->getJumpDurationMs(), curr.hour);
 
-  boxMinutes = new Box(mainView, 76, 107);
+  boxMinutes = new Box(scr, 76, 107);
   boxMinutes->render(marioMinutes->getJumpDurationMs(), curr.minute);
 
-  boxSeconds = new Box(mainView, 126, 107);
+  boxSeconds = new Box(scr, 126, 107);
   boxSeconds->render(marioSeconds->getJumpDurationMs(), curr.second);
 
   // header
-  static lv_style_t headerStyle;
-  lv_style_copy(&headerStyle, &mainStyle);
-  lv_style_set_text_font(&headerStyle, LV_STATE_DEFAULT, &emulogic_10);
 
   // step counter
-  lv_obj_t *stepLabel = lv_label_create(mainView, NULL);
+  lv_obj_t *stepLabel = lv_label_create(scr, NULL);
   lv_obj_align(stepLabel, NULL, LV_ALIGN_IN_TOP_LEFT, 10, 10);
-  lv_obj_add_style(stepLabel, LV_OBJ_PART_MAIN, &headerStyle);
   lv_label_set_align(stepLabel, LV_LABEL_ALIGN_LEFT);
   lv_label_set_text(stepLabel, "MARIO");
 
-  stepLabelValue = lv_label_create(mainView, NULL);
+  stepLabelValue = lv_label_create(scr, NULL);
   lv_obj_align(stepLabelValue, NULL, LV_ALIGN_IN_TOP_LEFT, 10, 22);
-  lv_obj_add_style(stepLabelValue, LV_OBJ_PART_MAIN, &headerStyle);
   lv_label_set_align(stepLabelValue, LV_LABEL_ALIGN_LEFT);
   lv_label_set_text(stepLabelValue, "000000");
 
   // wakeup counter (coins)
-  lv_obj_t *coinImg = lv_img_create(mainView, NULL);
+  lv_obj_t *coinImg = lv_img_create(scr, NULL);
   lv_img_set_src(coinImg, &coin);
   lv_obj_align(coinImg, NULL, LV_ALIGN_IN_TOP_LEFT, 90, 22);
 
-  coinsLabel = lv_label_create(mainView, NULL);
+  coinsLabel = lv_label_create(scr, NULL);
   lv_obj_align(coinsLabel, NULL, LV_ALIGN_IN_TOP_LEFT, 102, 22);
-  lv_obj_add_style(coinsLabel, LV_OBJ_PART_MAIN, &headerStyle);
   lv_label_set_align(coinsLabel, LV_LABEL_ALIGN_CENTER);
   lv_label_set_text(coinsLabel, "*00");
 
   // battery
-  lv_obj_t *wtflabel = lv_label_create(mainView, NULL);
-  lv_obj_add_style(wtflabel, LV_OBJ_PART_MAIN, &headerStyle);
+  lv_obj_t *wtflabel = lv_label_create(scr, NULL);
   lv_obj_align(wtflabel, NULL, LV_ALIGN_IN_TOP_RIGHT, -10, 10);
   lv_label_set_align(wtflabel, LV_LABEL_ALIGN_RIGHT);
   lv_label_set_text(wtflabel, "TIME");
 
-  batteryLabelValue = lv_label_create(mainView, NULL);
+  batteryLabelValue = lv_label_create(scr, NULL);
   lv_obj_align(batteryLabelValue, NULL, LV_ALIGN_IN_TOP_RIGHT, -10, 22);
-  lv_obj_add_style(batteryLabelValue, LV_OBJ_PART_MAIN, &headerStyle);
   lv_label_set_align(batteryLabelValue, LV_LABEL_ALIGN_RIGHT);
 
   // date
-  Cloud *dateCloud = new Cloud(mainView, 120, 50);
+  Cloud *dateCloud = new Cloud(scr, 120, 50);
   dateCloud->render("23.07");
 
 
@@ -100,8 +87,8 @@ void Gui::setupGui()
   updateTime();
   updateBatteryLevel();
 
-  lv_obj_set_user_data(mainView, this);
-  lv_obj_set_event_cb(mainView, Gui::event_handler);
+  lv_obj_set_user_data(scr, this);
+  lv_obj_set_event_cb(scr, Gui::event_handler);
 }
 
 void Gui::updateTime()

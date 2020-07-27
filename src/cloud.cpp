@@ -8,15 +8,15 @@ Cloud::Cloud(lv_obj_t *mparent, int px, int py)
 }
 
 void Cloud::render(const char *datestring)
-{
-    static lv_style_t mainStyle;
-    lv_style_init(&mainStyle);
-    lv_style_set_text_font(&mainStyle, LV_STATE_DEFAULT, &emulogic_11);
-    lv_style_set_text_color(&mainStyle, LV_OBJ_PART_MAIN, LV_COLOR_BLACK);
-    lv_style_set_bg_color(&mainStyle, LV_OBJ_PART_MAIN, lv_color_hex(0x6b8cff));
-    lv_style_set_border_width(&mainStyle, LV_OBJ_PART_MAIN, 0);
+{  
+    static lv_style_t style;
+    lv_style_init(&style);
+    lv_style_set_bg_color(&style, LV_STATE_DEFAULT, LV_COLOR_TRANSP);
+    lv_style_set_bg_opa(&style, LV_STATE_DEFAULT, LV_OPA_TRANSP);
+    lv_style_set_border_width(&style, LV_STATE_DEFAULT, 0);
+
     cloudContainer = lv_cont_create(parent, NULL);
-    lv_obj_add_style(cloudContainer, LV_OBJ_PART_MAIN, &mainStyle);
+    lv_obj_add_style(cloudContainer, LV_OBJ_PART_MAIN, &style);
     lv_obj_set_pos(cloudContainer, x, y);
     lv_obj_set_width(cloudContainer, 42);
     lv_obj_set_height(cloudContainer, 32);
