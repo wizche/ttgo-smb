@@ -78,6 +78,7 @@ void low_energy()
         gui->updateBatteryLevel();
         gui->updateStepCounter(ttgo->bma->getCounter());
         gui->updateWakeupCount();
+        gui->updateDate();
         ttgo->openBL();
         ttgo->bma->enableStepCountInterrupt();
     }

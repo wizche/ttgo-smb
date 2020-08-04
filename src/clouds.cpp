@@ -7,7 +7,21 @@ Clouds::Clouds(lv_obj_t *mparent, int px, int py)
     y = py;
 }
 
-void Clouds::render(const char *datestring)
+void Clouds::update(int day, int month){
+    Serial.printf("New date %02d.%02d\n", day, month);
+
+    char buff[3];
+    sprintf(buff, "%02d", day);
+    lv_label_set_text_fmt(dayLabel, buff);
+    lv_obj_align(dayLabel, NULL, LV_ALIGN_CENTER, 0, 0);
+    lv_label_set_align(dayLabel, LV_LABEL_ALIGN_CENTER);
+
+    lv_label_set_text_fmt(monthLabel, months[month-1]);
+    lv_obj_align(monthLabel, NULL, LV_ALIGN_CENTER, 3, 0);
+    lv_label_set_align(monthLabel, LV_LABEL_ALIGN_RIGHT);
+}
+
+void Clouds::render()
 {  
     static lv_style_t style;
     lv_style_init(&style);
@@ -35,20 +49,13 @@ void Clouds::render(const char *datestring)
     lv_img_set_src(cloudDayImg, &cloud);
     lv_obj_align(cloudDayImg, NULL, LV_ALIGN_CENTER, 0, 0);
 
-    lv_obj_t *dayLabel = lv_label_create(cloudDayContainer, NULL);
-    lv_obj_align(dayLabel, NULL, LV_ALIGN_CENTER, 8, 0);
-    lv_label_set_text_fmt(dayLabel, "28");
-    lv_label_set_align(dayLabel, LV_LABEL_ALIGN_CENTER);
-    lv_obj_set_auto_realign(dayLabel, true);
+    dayLabel = lv_label_create(cloudDayContainer, NULL);
 
     lv_obj_t *cloudMonthImg = lv_img_create(cloudMonthContainer, NULL);
     lv_img_set_src(cloudMonthImg, &cloud);
     lv_obj_align(cloudMonthImg, NULL, LV_ALIGN_CENTER, 5, 0);
 
-    lv_obj_t *monthLabel = lv_label_create(cloudMonthContainer, NULL);
-    lv_obj_align(monthLabel, NULL, LV_ALIGN_CENTER, 8, 0);
-    lv_label_set_text_fmt(monthLabel, "jul");
-    lv_label_set_align(monthLabel, LV_LABEL_ALIGN_RIGHT);
+    monthLabel = lv_label_create(cloudMonthContainer, NULL);
 
     lv_anim_init(&animDay);
     lv_anim_set_var(&animDay, cloudDayContainer);

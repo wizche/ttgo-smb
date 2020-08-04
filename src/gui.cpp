@@ -4,7 +4,7 @@ void Gui::setupGui()
 {
   Serial.printf("Screensize: %dx%d\n", LV_HOR_RES, LV_VER_RES);
   lv_obj_t *scr = lv_scr_act();
-  
+
   static lv_style_t style;
   lv_style_init(&style);
   lv_style_set_text_color(&style, LV_STATE_DEFAULT, LV_COLOR_WHITE);
@@ -13,7 +13,7 @@ void Gui::setupGui()
   lv_style_set_border_width(&style, LV_STATE_DEFAULT, 0);
   lv_style_set_text_font(&style, LV_STATE_DEFAULT, &emulogic_10);
   lv_obj_add_style(scr, LV_OBJ_PART_MAIN, &style);
- 
+
   lv_obj_t *img_bin = lv_img_create(scr, NULL);
   lv_img_set_src(img_bin, &world);
   lv_obj_align(img_bin, NULL, LV_ALIGN_CENTER, 0, 0);
@@ -73,17 +73,24 @@ void Gui::setupGui()
   lv_label_set_align(batteryLabelValue, LV_LABEL_ALIGN_RIGHT);
 
   // date
-  Clouds *dateCloud = new Clouds(scr, 150, 70);
-  dateCloud->render("23.07");
-
+  dateCloud = new Clouds(scr, 150, 70);
+  dateCloud->render();
 
   lv_task_create(Gui::lv_update_task, 1000, LV_TASK_PRIO_MID, this);
 
   updateTime();
+  updateDate();
   updateBatteryLevel();
 
   lv_obj_set_user_data(scr, this);
   lv_obj_set_event_cb(scr, Gui::event_handler);
+}
+
+void Gui::updateDate()
+{
+  TTGOClass *ttgo = TTGOClass::getWatch();
+  RTC_Date curr = ttgo->rtc->getDateTime();
+  dateCloud->update(curr.day, curr.month);
 }
 
 void Gui::updateTime()

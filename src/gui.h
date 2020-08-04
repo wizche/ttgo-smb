@@ -27,6 +27,8 @@ private:
 
   Mario *marioHour, *marioMinutes, *marioSeconds = nullptr;
   Box *boxHour, *boxMinutes, *boxSeconds = nullptr;
+  Clouds *dateCloud = nullptr;
+
   Gestures process_gesture(lv_event_t event);
 
   static void lv_update_task(struct _lv_task_t *);
@@ -36,6 +38,7 @@ private:
 public:
   void setupGui();
   void updateTime();
+  void updateDate();
   void updateBatteryLevel();
   void updateStepCounter(unsigned int steps);
   void updateWakeupCount();
