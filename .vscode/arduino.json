@@ -1,6 +1,7 @@
 {
     "board": "esp32:esp32:ttgo-t-watch",
     "configuration": "PSRAM=enabled,PartitionScheme=default,UploadSpeed=2000000,DebugLevel=none",
-    "port": "/dev/tty.SLAB_USBtoUART",
-    "sketch": "mario.ino"
+    "port": "COM7",
+    "sketch": "mario.ino",
+    "output": "../build"
 }
