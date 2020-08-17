@@ -25,8 +25,8 @@ bool useNTPtime = false;
 // #define SSID "MY_SSID"
 // #define PASSWORD "MY_PASSWORD"
 // TODO: store this infos in a crypted way?
-const char* ssid       = "SSID";
-const char* password   = "PASSWORD";
+const char* ssid       = SSID;
+const char* password   = PASSWORD;
 
 // NTP Settings : for more ionformations, https://lastminuteengineers.com/esp32-ntp-server-date-time-tutorial/
 const char* ntpServer = "pool.ntp.org"; // (for worlwide NTP server)
@@ -106,14 +106,14 @@ void low_energy()
 void synchRtc2Ntp()
 {
     //connect to WiFi
-    Serial.printf("Connecting to %s ", ssid);
+    Serial.printf("Connecting to %s \n", ssid);
     WiFi.begin(ssid, password);
     while (WiFi.status() != WL_CONNECTED) 
     {
         delay(500);
         Serial.print("."); 
     }
-    Serial.printf("Connected to %s ", ssid);
+    Serial.printf("\nConnected to %s \n", ssid);
   
     //init and get the time from NTP server
     configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
