@@ -18,21 +18,19 @@ EventGroupHandle_t g_event_group = NULL;
 EventGroupHandle_t isr_group = NULL;
 bool lenergy = false;
 bool tryNTPtime = true;
-bool useNTPtime = false;
 
 // Wifi variables 
-// The credetials are stored in src/secret.h file that doesnt need to be synched with the repo. The followin format is used:
+// The credetials are stored in src/secret.h file that doesnt need to be synched with the repo. The following format is used:
 // #define SSID "MY_SSID"
 // #define PASSWORD "MY_PASSWORD"
-// TODO: store this infos in a crypted way?
 const char* ssid       = SSID;
-const char* password   = PASSWORD;
+const char* ssid_passphrase   = PASSWORD;
 
 // NTP Settings : for more ionformations, https://lastminuteengineers.com/esp32-ntp-server-date-time-tutorial/
 const char* ntpServer = "pool.ntp.org"; // (for worlwide NTP server)
 // const char* ntpServer = "europe.pool.ntp.org";
-const long  gmtOffset_sec = 3600;
-const int   daylightOffset_sec = 3600;
+const long gmtOffset_sec = 3600;
+const int  daylightOffset_sec = 3600;
 
 Gui *gui;
 
@@ -103,15 +101,23 @@ void low_energy()
     }
 }
 
-void synchRtc2Ntp()
+bool syncRtc2Ntp()
 {
     //connect to WiFi
-    Serial.printf("Connecting to %s \n", ssid);
-    WiFi.begin(ssid, password);
+    Serial.printf("Connecting to %s\n", ssid);
+    WiFi.begin(ssid, ssid_passphrase);
+    // after 6 sec if WiFi is not found abort and avoid locking the setup
+    int timeoutMs = 6000; 
     while (WiFi.status() != WL_CONNECTED) 
     {
         delay(500);
-        Serial.print("."); 
+        timeoutMs -= 500;
+        Serial.print(".");
+        if(timeoutMs <= 0){
+            Serial.printf("\nWifi connection timed-out!\n");
+            WiFi.mode(WIFI_OFF);
+            return false;
+        } 
     }
     Serial.printf("\nConnected to %s \n", ssid);
   
@@ -121,12 +127,12 @@ void synchRtc2Ntp()
     if(!getLocalTime(&timeinfo))
     {
         Serial.println("Failed to obtain time");
-        return;
+        return false;
     }
     Serial.println(&timeinfo, "%A, %B %d %Y %H:%M:%S");
     // RTC_Date updateRTC =(timeinfo.tm_year,timeinfo.tm_mon,timeinfo.tm_mday,timeinfo.tm_hour,timeinfo.tm_min,timeinfo.tm_sec);
     // ttgo->rtc->setDateTime(updateRTC);
-    RTC_Date updateRTC ;
+    RTC_Date updateRTC;
     updateRTC.year = timeinfo.tm_year;
     updateRTC.month = timeinfo.tm_mon;
     updateRTC.day = timeinfo.tm_mday;
@@ -134,13 +140,12 @@ void synchRtc2Ntp()
     updateRTC.minute = timeinfo.tm_min;
     updateRTC.second = timeinfo.tm_sec;
     ttgo->rtc->setDateTime(updateRTC);
-    // ttgo->rtc->syncToRtc();
     Serial.println("RTC time synched with NTP");
-    useNTPtime = true;
 
     //disconnect WiFi as it's no longer needed
     WiFi.disconnect(true);
     WiFi.mode(WIFI_OFF);
+    return true;
 }
 
 void setup()
@@ -230,20 +235,15 @@ void setup()
     Serial.printf("RTC time: %s\n", ttgo->rtc->formatDateTime());
 
 
-    if (tryNTPtime == false)
+    if (tryNTPtime)
     {
-        //Synchronize time to system time
-        ttgo->rtc->syncToSystem();
-
-        Serial.printf("System time: %s\n", ttgo->rtc->formatDateTime());
-        useNTPtime = false;
-    } else {
-
         //Synchronize time to NTP
+        syncRtc2Ntp();
+    } 
 
-        synchRtc2Ntp();
-    }
-    
+    ttgo->rtc->syncToSystem();
+    Serial.printf("RTC time: %s\n", ttgo->rtc->formatDateTime());
+
     gui = new Gui();
     gui->setupGui();
 }
