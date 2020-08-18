@@ -16,7 +16,7 @@ void Clouds::update(int day, int month){
     lv_obj_align(dayLabel, NULL, LV_ALIGN_CENTER, 0, 0);
     lv_label_set_align(dayLabel, LV_LABEL_ALIGN_CENTER);
 
-    lv_label_set_text_fmt(monthLabel, months[month-1]);
+    lv_label_set_text_fmt(monthLabel, months[month]);
     lv_obj_align(monthLabel, NULL, LV_ALIGN_CENTER, 3, 0);
     lv_label_set_align(monthLabel, LV_LABEL_ALIGN_RIGHT);
 }
