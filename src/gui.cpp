@@ -20,24 +20,18 @@ void Gui::setupGui()
 
   RTC_Date curr = TTGOClass::getWatch()->rtc->getDateTime();
   // Characters
-  marioHour = new Mario(scr, 27, 170);
-  marioHour->render();
-
-  marioMinutes = new Mario(scr, 77, 170);
-  marioMinutes->render();
-
-  marioSeconds = new Mario(scr, 127, 170);
-  marioSeconds->render();
+  mario = new Mario(scr, 0, 170);
+  mario->render();
 
   // Boxes
   boxHour = new Box(scr, 26, 107);
-  boxHour->render(marioHour->getJumpDurationMs(), curr.hour);
+  boxHour->render(mario->getJumpDurationMs(), curr.hour);
 
   boxMinutes = new Box(scr, 76, 107);
-  boxMinutes->render(marioMinutes->getJumpDurationMs(), curr.minute);
+  boxMinutes->render(mario->getJumpDurationMs(), curr.minute);
 
   boxSeconds = new Box(scr, 126, 107);
-  boxSeconds->render(marioSeconds->getJumpDurationMs(), curr.second);
+  boxSeconds->render(mario->getJumpDurationMs(), curr.second);
 
   // header
 
@@ -77,10 +71,12 @@ void Gui::setupGui()
   dateCloud->render();
 
   lv_task_create(Gui::lv_update_task, 1000, LV_TASK_PRIO_MID, this);
+  lv_task_create(Gui::update, 1000/FPS, LV_TASK_PRIO_HIGH, this);
 
   updateTime();
   updateDate();
   updateBatteryLevel();
+  mario->run();
 
   lv_obj_set_user_data(scr, this);
   lv_obj_set_event_cb(scr, Gui::event_handler);
@@ -98,18 +94,13 @@ void Gui::updateTime()
   TTGOClass *ttgo = TTGOClass::getWatch();
   RTC_Date curr = ttgo->rtc->getDateTime();
 
-  marioSeconds->jump();
-  boxSeconds->hit(curr.second);
-
   if (curr.minute != boxMinutes->getCurrentValue())
   {
-    marioMinutes->jump();
     boxMinutes->hit(curr.minute);
   }
 
   if (curr.hour != boxHour->getCurrentValue())
   {
-    marioHour->jump();
     boxHour->hit(curr.hour);
   }
 }
@@ -157,4 +148,15 @@ void Gui::lv_update_task(struct _lv_task_t *task)
 {
   Gui *gui = (Gui *)task->user_data;
   gui->updateTime();
+}
+
+void Gui::update(struct _lv_task_t *task)
+{
+  Gui *gui = (Gui *)task->user_data;
+  gui->updateFrame();
+}
+
+void Gui::updateFrame()
+{
+  mario->update();
 }
