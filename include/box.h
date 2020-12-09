@@ -3,29 +3,32 @@
 
 #include "config.h"
 #include "shape.h"
+#include <cmath>
 
 LV_IMG_DECLARE(box);
 LV_FONT_DECLARE(emulogic_11);
 
-class Box: public HitShape {
+enum BoxType {
+    Seconds, Minute, Hour
+};
+
+class Box: public HitShape, public BasicObject {
     private:
-        lv_obj_t *parent;
         lv_obj_t *boxContainer;
         lv_anim_t boxAnim;
         lv_obj_t *timeLabel;
-        int currentValue;
-        int animationDelayMs = 0;
-        int x, y = 0;
-        const unsigned int HIT_DURATION_MS = 150;
+        BoxType type;
+        uint8_t currentValue;
+        const unsigned int HIT_DURATION_MS = 125;
 
         void updateTime();
     public:
-        Box(lv_obj_t *mparent, int px, int py);
+        Box(lv_obj_t *mparent, int px, int py, int width, int height, BoxType type);
 
-        int getCurrentValue();
+        uint8_t getCurrentValue();
         void render();
         void hit(int newValue);
-
+    
         static void updateTimeCallback(struct _lv_anim_t* animstruct);
 };
 

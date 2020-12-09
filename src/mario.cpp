@@ -9,7 +9,7 @@ Mario::Mario(lv_obj_t *mparent, int px, int py) : pos{px, py}
 
 int Mario::getJumpDurationMs()
 {
-    return abs((int)(dt * ((jumpVel / jumpAcc)) * 1000.0));
+    return abs((int)(dt * ((jumpVel / jumpAcc)) * 1000.0))-10;
 }
 
 void Mario::render()
@@ -67,6 +67,8 @@ void Mario::update()
         acc[0] = 0.07f;
         pos[0] = x - width;
         frameIndex = 0.0f;
+        maxSpeed = rand() % 7 + 4;
+        vel[0]=maxSpeed;
     }
 
     vel[0] += acc[0];

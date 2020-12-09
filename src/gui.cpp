@@ -18,7 +18,6 @@ void Gui::setupGui()
   lv_img_set_src(img_bin, &world);
   lv_obj_align(img_bin, NULL, LV_ALIGN_CENTER, 0, 0);
 
-  RTC_Date curr = TTGOClass::getWatch()->rtc->getDateTime();
   // Characters
   mario = new Mario(scr, 0, 170);
   mario->render();
@@ -31,7 +30,7 @@ void Gui::setupGui()
   boxMinutes = new Box(scr, 76, 107);
   boxMinutes->render(mario->getJumpDurationMs(), curr.minute);
   */
-  boxSeconds = new Box(scr, 126, 107);
+  boxSeconds = new Box(scr, 126, 107, 25, 25, BoxType::Seconds);
   boxSeconds->render();
 
   // header
@@ -95,7 +94,7 @@ void Gui::updateTime()
   TTGOClass *ttgo = TTGOClass::getWatch();
   RTC_Date curr = ttgo->rtc->getDateTime();
 
-  mario->jump(138, boxSeconds);
+  mario->jump(boxSeconds->getCenter(), boxSeconds);
   
 }
 

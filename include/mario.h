@@ -37,7 +37,7 @@ private:
     int width=23;
     int height=46;
     int x, y = 0;
-    float maxSpeed = 4.0;
+    float maxSpeed = 8.0;
     float vel[2] = { 0.0, 0.0 };
     float acc[2] = { 0.07, 0.25 };
     int pos[2] = {0, 0};
