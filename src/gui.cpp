@@ -24,14 +24,15 @@ void Gui::setupGui()
   mario->render();
 
   // Boxes
+  /*
   boxHour = new Box(scr, 26, 107);
   boxHour->render(mario->getJumpDurationMs(), curr.hour);
 
   boxMinutes = new Box(scr, 76, 107);
   boxMinutes->render(mario->getJumpDurationMs(), curr.minute);
-
+  */
   boxSeconds = new Box(scr, 126, 107);
-  boxSeconds->render(mario->getJumpDurationMs(), curr.second);
+  boxSeconds->render();
 
   // header
 
@@ -94,15 +95,8 @@ void Gui::updateTime()
   TTGOClass *ttgo = TTGOClass::getWatch();
   RTC_Date curr = ttgo->rtc->getDateTime();
 
-  if (curr.minute != boxMinutes->getCurrentValue())
-  {
-    boxMinutes->hit(curr.minute);
-  }
-
-  if (curr.hour != boxHour->getCurrentValue())
-  {
-    boxHour->hit(curr.hour);
-  }
+  mario->jump(138, boxSeconds);
+  
 }
 
 void Gui::updateBatteryLevel()

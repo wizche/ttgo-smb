@@ -12,7 +12,7 @@ int Box::getCurrentValue()
   return currentValue;
 }
 
-void Box::render(int animationDelayMs, int initialValue)
+void Box::render()
 {
   static lv_style_t style;
   lv_style_init(&style);
@@ -20,7 +20,6 @@ void Box::render(int animationDelayMs, int initialValue)
   lv_style_set_text_font(&style, LV_STATE_DEFAULT, &emulogic_11);
   lv_style_set_border_width(&style, LV_STATE_DEFAULT, 0);
 
-  this->animationDelayMs = animationDelayMs;
   boxContainer = lv_cont_create(parent, NULL);
   lv_obj_add_style(boxContainer, LV_OBJ_PART_MAIN, &style);
   lv_obj_set_pos(boxContainer, x, y);
@@ -33,34 +32,38 @@ void Box::render(int animationDelayMs, int initialValue)
 
   timeLabel = lv_label_create(boxContainer, NULL);
   lv_obj_align(timeLabel, NULL, LV_ALIGN_CENTER, 11, -1);
-  char buff[3];
-  sprintf(buff, "%02d", initialValue);
-  currentValue = initialValue;
-  lv_label_set_text(timeLabel, buff);
+  updateTime();
 
   lv_anim_init(&boxAnim);
   lv_anim_set_var(&boxAnim, boxContainer);
   lv_anim_set_exec_cb(&boxAnim, (lv_anim_exec_xcb_t)lv_obj_set_y);
   lv_anim_set_values(&boxAnim, y, y - 25);
   lv_anim_set_playback_time(&boxAnim, HIT_DURATION_MS);
-  lv_anim_set_delay(&boxAnim, animationDelayMs);
   lv_anim_set_time(&boxAnim, HIT_DURATION_MS);
+}
 
-  // TODO: Is this the best way to deal with static class methods? 
+void Box::updateTime()
+{
+  char buff[3];
+  RTC_Date curr = TTGOClass::getWatch()->rtc->getDateTime();
+  sprintf(buff, "%02d", curr.second);
+  lv_label_set_text(timeLabel, buff);
+}
+
+void Box::updateTimeCallback(struct _lv_anim_t *animstruct)
+{
+  Box *box = (Box *)lv_obj_get_user_data((lv_obj_t *)animstruct->var);
+  box->updateTime();
+}
+
+void Box::hit(int delayMs)
+{
+  Serial.printf("Scheduling box hit in %d ms\n", delayMs);
+  lv_anim_set_delay(&boxAnim, delayMs);
+
+  // TODO: Is this the best way to deal with static class methods?
   // set_user_data actually create a copy (perf?)
   lv_obj_set_user_data(boxContainer, this);
-  lv_anim_set_start_cb(&boxAnim, &Box::updateTime);
-}
-
-void Box::updateTime(struct _lv_anim_t* animstruct){
-  Box *box = (Box *)lv_obj_get_user_data((lv_obj_t *)animstruct->var);
-  char buff[3];
-  sprintf(buff, "%02d", box->currentValue);
-  lv_label_set_text(box->timeLabel, buff);
-}
-
-void Box::hit(int newValue)
-{
-  currentValue = newValue;
+  lv_anim_set_start_cb(&boxAnim, &Box::updateTimeCallback);
   lv_anim_start(&boxAnim);
 }

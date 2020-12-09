@@ -2,6 +2,8 @@
 #define __MARIO_H
 
 #include "config.h"
+#include "shape.h"
+
 #include <map>
 #include <cmath>
 
@@ -29,7 +31,6 @@ private:
     lv_obj_t *marioContainer;
     lv_obj_t *marioImg;
     lv_anim_t marioAnim;
-    const unsigned int JUMP_DURATION_MS = 300;
     static void resetMario(lv_task_t *task);
     static void jumpMario(lv_task_t *task);
 
@@ -40,16 +41,22 @@ private:
     float vel[2] = { 0.0, 0.0 };
     float acc[2] = { 0.07, 0.25 };
     int pos[2] = {0, 0};
-    int jumping = 40;
+    // timesteps
+    double dt = FPS / 1000.0;
     double frameIndex = 0.0f;
-    bool left, running = false;
+    float jumpVel = -6.5;
+    float jumpAcc = 0.5;
+    bool left, running, jumping = false;
     std::vector<int> enabledFrames;
+    std::vector<std::pair<int, HitShape*>> jumpTargets;
+
+    // methods
+    int getJumpDurationMs();
 
 public:
     Mario(lv_obj_t *mparent, int px, int py);
-    int getJumpDurationMs();
     void render();
-    void jump();
+    void jump(int targetX, HitShape *hittableShape);
     void update();
     void run();
 };

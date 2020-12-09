@@ -2,11 +2,12 @@
 #define __BOX_H
 
 #include "config.h"
+#include "shape.h"
 
 LV_IMG_DECLARE(box);
 LV_FONT_DECLARE(emulogic_11);
 
-class Box {
+class Box: public HitShape {
     private:
         lv_obj_t *parent;
         lv_obj_t *boxContainer;
@@ -17,13 +18,15 @@ class Box {
         int x, y = 0;
         const unsigned int HIT_DURATION_MS = 150;
 
+        void updateTime();
     public:
         Box(lv_obj_t *mparent, int px, int py);
 
         int getCurrentValue();
-        void render(int animationDelayMs, int initialValue);
+        void render();
         void hit(int newValue);
-        static void updateTime(struct _lv_anim_t* animstruct);
+
+        static void updateTimeCallback(struct _lv_anim_t* animstruct);
 };
 
 #endif //__BOX_H

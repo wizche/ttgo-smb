@@ -5,12 +5,11 @@ Mario::Mario(lv_obj_t *mparent, int px, int py) : pos{px, py}
     parent = mparent;
     x = px;
     y = py;
-    jump();
 }
 
 int Mario::getJumpDurationMs()
 {
-    return JUMP_DURATION_MS;
+    return abs((int)(dt * ((jumpVel / jumpAcc)) * 1000.0));
 }
 
 void Mario::render()
@@ -45,19 +44,14 @@ void Mario::render()
 
 void Mario::update()
 {
-    if (jumping)
-    {
-        jumping -= 1;
-    }
-
     // if vertical velocity and position match ground, reset
     if (vel[1] > 0.0 && pos[1] >= y)
     {
         Serial.printf("Jump is over, reset!\n");
         vel[1] = 0.0;
         acc[1] = 0.0;
-        jumping = 0;
         pos[1] = y;
+        jumping = false;
     }
 
     if (abs(vel[0]) > maxSpeed)
@@ -71,7 +65,7 @@ void Mario::update()
     {
         Serial.printf("We went out of screen!\n");
         acc[0] = 0.07f;
-        pos[0] = x-width;
+        pos[0] = x - width;
         frameIndex = 0.0f;
     }
 
@@ -82,46 +76,76 @@ void Mario::update()
     pos[1] += vel[1];
 
     lv_obj_set_pos(marioContainer, pos[0], pos[1]);
-    Serial.printf("pos x %d;%d, jump %d, vel %.2f;%.2f, acc: %.2f;%.2f\n", pos[0], pos[1], jumping, vel[0], vel[1], acc[0], acc[1]);
+    //Serial.printf("pos x %d;%d, jump %d, vel %.2f;%.2f, acc: %.2f;%.2f\n", pos[0], pos[1], jumping, vel[0], vel[1], acc[0], acc[1]);
 
-    if (jumping)
+    // SPRITE SELECTION
+    // when running
+    if (vel[0] > 0.0f && !jumping)
     {
-        lv_img_set_offset_x(marioImg, frames[5].first);
-        lv_img_set_offset_y(marioImg, frames[5].second);
-    }
-    else if (vel[0] > 0.0f)
-    {
-        // we need to update the frame proportionally to the speed of mario
-        double dt = FPS / 1000.0;
         double framesSpeed = vel[0] * 4;
         frameIndex += (framesSpeed * dt);
-        int frame = ((int) floor(frameIndex) % enabledFrames.size());
-        Serial.printf("idx %d, selframe %d, frameindex %f, speed %3.3f\n", frame, enabledFrames[frame], frameIndex, framesSpeed);
+        int frame = ((int)floor(frameIndex) % enabledFrames.size());
+        //Serial.printf("idx %d, selframe %d, frameindex %f, speed %3.3f\n", frame, enabledFrames[frame], frameIndex, framesSpeed);
         lv_img_set_offset_x(marioImg, frames[enabledFrames[frame]].first);
         lv_img_set_offset_y(marioImg, frames[enabledFrames[frame]].second);
     }
+    else if (jumping)
+    {
+        //jumping!
+        lv_img_set_offset_x(marioImg, frames[5].first);
+        lv_img_set_offset_y(marioImg, frames[5].second);
+    }
     else
     {
+        //standing
         lv_img_set_offset_x(marioImg, frames[0].first);
         lv_img_set_offset_y(marioImg, frames[0].second);
     }
 
+    // compute jump only if not already jumping!
+    if (vel[1] <= 0.0)
+    {
+        // lets iterate over the scheduled jump to see if there is a match!
+        std::vector<std::pair<int, HitShape *>>::iterator it = jumpTargets.begin();
+        while (it != jumpTargets.end())
+        {
+            int targetX = (*it).first;
+            HitShape *shape = (*it).second;
+            int steps = abs((int)floor(jumpVel / jumpAcc));
+            float futurePos = pos[0] + (steps * vel[0]);
+            float futurePosNext = pos[0] + ((steps + 1) * vel[0]);
 
-    if(pos[0] > 85 && pos[0] < 95){
-        jump();
+            Serial.printf("pos %d;%d, target: %d, steps %d, f1 %3.0f, f2 %3.0f, vel %.2f;%.2f, acc: %.2f;%.2f\n",
+                          pos[0], pos[1], targetX, steps, futurePos, futurePosNext,
+                          vel[0], vel[1], acc[0], acc[1]);
+
+            if (targetX >= futurePos && targetX <= futurePosNext)
+            {
+                Serial.printf("Time to jump!\n");
+                it = jumpTargets.erase(it);
+                vel[1] = jumpVel;
+                acc[1] = jumpAcc;
+                jumping = true;
+                shape->hit(getJumpDurationMs());
+            }
+            else
+                ++it;
+        }
     }
 }
 
-void Mario::jump()
+void Mario::jump(int targetX, HitShape *hittableShape)
 {
-    if (vel[1] > 0.0)
+    if (std::any_of(jumpTargets.begin(), jumpTargets.end(),
+                    [&targetX](const std::pair<int, HitShape *> &p) { return p.first == targetX; }))
     {
-        return;
+        Serial.printf("Jump target %d already in the list!\n", targetX);
     }
-    Serial.printf("JUMP!\n");
-    vel[1] = -5.5;
-    acc[1] = 0.55;
-    jumping = 40;
+    else
+    {
+        Serial.printf("Added jump target %d to list!\n", targetX);
+        jumpTargets.push_back(std::make_pair(targetX, hittableShape));
+    }
 }
 
 void Mario::jumpMario(lv_task_t *task)
