@@ -1,9 +1,10 @@
 #include "box.h"
 
-Box::Box(lv_obj_t *mparent, int px, int py, int width, int height, BoxType mtype)
+Box::Box(lv_obj_t *mparent, int px, int py, int width, int height, BoxType mtype, UpdateSubscribe *mupdatableShape)
     : BasicObject(mparent, px, py, width, height)
 {
   type = mtype;
+  updateSubscribe = mupdatableShape;
 }
 
 uint8_t Box::getCurrentValue()
@@ -31,7 +32,7 @@ void Box::render()
 
   timeLabel = lv_label_create(boxContainer, NULL);
   lv_obj_align(timeLabel, NULL, LV_ALIGN_CENTER, (int)floor(width / 2.0) - 1, -1);
-  updateTime();
+  lv_label_set_text(timeLabel, "00");
 
   lv_anim_init(&boxAnim);
   lv_anim_set_var(&boxAnim, boxContainer);
@@ -58,17 +59,20 @@ void Box::updateTime()
     break;
   }
 
-  char buff[3];
-  sprintf(buff, "%02d", value);
-  lv_label_set_text(timeLabel, buff);
-  currentValue = value;
-  Serial.printf("Updating box %d: %d\n", type, value);
+  Serial.printf("Updating box %d, previous %d: %d\n", type, currentValue, value);
+
+  if(currentValue != value){
+    currentValue = value;
+    updateSubscribe->schedule(getCenter(), this);
+  }
 }
 
 void Box::updateTimeCallback(struct _lv_anim_t *animstruct)
 {
   Box *box = (Box *)lv_obj_get_user_data((lv_obj_t *)animstruct->var);
-  box->updateTime();
+  char buff[3];
+  sprintf(buff, "%02d", box->currentValue);
+  lv_label_set_text(box->timeLabel, buff);
 }
 
 void Box::hit(int delayMs)

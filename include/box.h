@@ -9,7 +9,7 @@ LV_IMG_DECLARE(box);
 LV_FONT_DECLARE(emulogic_11);
 
 enum BoxType {
-    Seconds, Minute, Hour
+    Seconds=0, Minute, Hour
 };
 
 class Box: public HitShape, public BasicObject {
@@ -18,13 +18,14 @@ class Box: public HitShape, public BasicObject {
         lv_anim_t boxAnim;
         lv_obj_t *timeLabel;
         BoxType type;
-        uint8_t currentValue;
+        uint8_t currentValue = 0;
+        UpdateSubscribe *updateSubscribe;
         const unsigned int HIT_DURATION_MS = 125;
 
-        void updateTime();
     public:
-        Box(lv_obj_t *mparent, int px, int py, int width, int height, BoxType type);
+        Box(lv_obj_t *mparent, int px, int py, int width, int height, BoxType mtype, UpdateSubscribe *updatableShape);
 
+        void updateTime();
         uint8_t getCurrentValue();
         void render();
         void hit(int newValue);

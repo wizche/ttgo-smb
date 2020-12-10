@@ -1,15 +1,13 @@
 #include "mario.h"
 
-Mario::Mario(lv_obj_t *mparent, int px, int py) : pos{px, py}
+Mario::Mario(lv_obj_t *mparent, int px, int py, int mwidth, int mheight)
+    : BasicObject(mparent, px, py, mwidth, mheight) , initialPosition{px, py}
 {
-    parent = mparent;
-    x = px;
-    y = py;
 }
 
 int Mario::getJumpDurationMs()
 {
-    return abs((int)(dt * ((jumpVel / jumpAcc)) * 1000.0))-10;
+    return abs((int)(dt * ((jumpVel / jumpAcc)) * 1000.0)) - 10;
 }
 
 void Mario::render()
@@ -22,8 +20,8 @@ void Mario::render()
     marioContainer = lv_cont_create(parent, NULL);
     lv_obj_add_style(marioContainer, LV_OBJ_PART_MAIN, &style);
 
-    lv_obj_set_pos(marioContainer, pos[0], pos[1]);
-    Serial.printf("X: %d Y: %d\n", pos[0], pos[1]);
+    lv_obj_set_pos(marioContainer, x, y);
+    Serial.printf("Mario rendered at X: %d Y: %d, W: %d, H: %d\n", x, y, width, height);
     lv_obj_set_width(marioContainer, width);
     lv_obj_set_height(marioContainer, height);
 
@@ -33,7 +31,6 @@ void Mario::render()
     lv_obj_set_width(marioImg, width);
     lv_obj_set_height(marioImg, height);
     lv_obj_align(marioImg, NULL, LV_ALIGN_IN_TOP_LEFT, 0, 0);
-    //lv_obj_align(marioImg, NULL, LV_ALIGN_IN_TOP_LEFT, 0, 0);
 
     int mx = frames.at(2).first;
     int my = frames.at(2).second;
@@ -45,12 +42,12 @@ void Mario::render()
 void Mario::update()
 {
     // if vertical velocity and position match ground, reset
-    if (vel[1] > 0.0 && pos[1] >= y)
+    if (vel[1] > 0.0 && y >= initialPosition[1])
     {
         Serial.printf("Jump is over, reset!\n");
         vel[1] = 0.0;
         acc[1] = 0.0;
-        pos[1] = y;
+        y = initialPosition[1];
         jumping = false;
     }
 
@@ -61,24 +58,24 @@ void Mario::update()
         acc[0] = 0.0f;
     }
 
-    if (pos[0] >= LV_HOR_RES && (vel[0] > 0.0f))
+    if (x >= LV_HOR_RES && (vel[0] > 0.0f))
     {
         Serial.printf("We went out of screen!\n");
         acc[0] = 0.07f;
-        pos[0] = x - width;
+        x = initialPosition[0] - width;
         frameIndex = 0.0f;
         maxSpeed = rand() % 7 + 4;
-        vel[0]=maxSpeed;
+        vel[0] = maxSpeed;
     }
 
     vel[0] += acc[0];
     vel[1] += acc[1];
 
-    pos[0] += vel[0];
-    pos[1] += vel[1];
+    x += vel[0];
+    y += vel[1];
 
-    lv_obj_set_pos(marioContainer, pos[0], pos[1]);
-    //Serial.printf("pos x %d;%d, jump %d, vel %.2f;%.2f, acc: %.2f;%.2f\n", pos[0], pos[1], jumping, vel[0], vel[1], acc[0], acc[1]);
+    lv_obj_set_pos(marioContainer, x, y);
+    //Serial.printf("pos x %d;%d, jump %d, vel %.2f;%.2f, acc: %.2f;%.2f\n", x, y, jumping, vel[0], vel[1], acc[0], acc[1]);
 
     // SPRITE SELECTION
     // when running
@@ -114,11 +111,11 @@ void Mario::update()
             int targetX = (*it).first;
             HitShape *shape = (*it).second;
             int steps = abs((int)floor(jumpVel / jumpAcc));
-            float futurePos = pos[0] + (steps * vel[0]);
-            float futurePosNext = pos[0] + ((steps + 1) * vel[0]);
+            float futurePos = x + (steps * vel[0]);
+            float futurePosNext = x + ((steps + 1) * vel[0]);
 
             Serial.printf("pos %d;%d, target: %d, steps %d, f1 %3.0f, f2 %3.0f, vel %.2f;%.2f, acc: %.2f;%.2f\n",
-                          pos[0], pos[1], targetX, steps, futurePos, futurePosNext,
+                          x, y, targetX, steps, futurePos, futurePosNext,
                           vel[0], vel[1], acc[0], acc[1]);
 
             if (targetX >= futurePos && targetX <= futurePosNext)
@@ -148,6 +145,11 @@ void Mario::jump(int targetX, HitShape *hittableShape)
         Serial.printf("Added jump target %d to list!\n", targetX);
         jumpTargets.push_back(std::make_pair(targetX, hittableShape));
     }
+}
+
+void Mario::schedule(int position, HitShape *hittableShape)
+{
+    jump(position, hittableShape);
 }
 
 void Mario::jumpMario(lv_task_t *task)

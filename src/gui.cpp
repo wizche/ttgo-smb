@@ -2,8 +2,8 @@
 
 void Gui::setupGui()
 {
-  Serial.printf("Screensize: %dx%d\n", LV_HOR_RES, LV_VER_RES);
   lv_obj_t *scr = lv_scr_act();
+  Serial.printf("Screensize: %dx%d | %p\n", LV_HOR_RES, LV_VER_RES, scr);
 
   static lv_style_t style;
   lv_style_init(&style);
@@ -19,7 +19,7 @@ void Gui::setupGui()
   lv_obj_align(img_bin, NULL, LV_ALIGN_CENTER, 0, 0);
 
   // Characters
-  mario = new Mario(scr, 0, 170);
+  mario = new Mario(scr, 0, 170, 23, 46);
   mario->render();
 
   // Boxes
@@ -30,7 +30,7 @@ void Gui::setupGui()
   boxMinutes = new Box(scr, 76, 107);
   boxMinutes->render(mario->getJumpDurationMs(), curr.minute);
   */
-  boxSeconds = new Box(scr, 126, 107, 25, 25, BoxType::Seconds);
+  boxSeconds = new Box(scr, 126, 107, 25, 25, BoxType::Seconds, mario);
   boxSeconds->render();
 
   // header
@@ -91,11 +91,7 @@ void Gui::updateDate()
 
 void Gui::updateTime()
 {
-  TTGOClass *ttgo = TTGOClass::getWatch();
-  RTC_Date curr = ttgo->rtc->getDateTime();
-
-  mario->jump(boxSeconds->getCenter(), boxSeconds);
-  
+  boxSeconds->updateTime();
 }
 
 void Gui::updateBatteryLevel()
@@ -151,5 +147,8 @@ void Gui::update(struct _lv_task_t *task)
 
 void Gui::updateFrame()
 {
+  if(boxSeconds->isColliding(mario)){
+    Serial.printf("**** BOX COLLIDING WITH MARIO! *********\n");
+  }
   mario->update();
 }
