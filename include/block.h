@@ -5,14 +5,14 @@
 #include "shape.h"
 #include <cmath>
 
-LV_IMG_DECLARE(box);
+LV_IMG_DECLARE(block);
 LV_FONT_DECLARE(emulogic_11);
 
 enum BoxType {
     Seconds=0, Minute, Hour
 };
 
-class Box: public HitShape, public BasicObject {
+class Block: public BasicObject {
     private:
         lv_obj_t *boxContainer;
         lv_anim_t boxAnim;
@@ -20,15 +20,19 @@ class Box: public HitShape, public BasicObject {
         BoxType type;
         uint8_t currentValue = 0;
         UpdateSubscribe *updateSubscribe;
-        const unsigned int HIT_DURATION_MS = 125;
+        const unsigned int HIT_DURATION_MS = 150;
+        bool animating = false;
+
+        // this callback is called once the hit animation is finished
+        static void animation_finished(struct _lv_task_t *);
 
     public:
-        Box(lv_obj_t *mparent, int px, int py, int width, int height, BoxType mtype, UpdateSubscribe *updatableShape);
+        Block(lv_obj_t *mparent, int px, int py, int width, int height, BoxType mtype, UpdateSubscribe *updatableShape);
 
         void updateTime();
         uint8_t getCurrentValue();
         void render();
-        void hit(int newValue);
+        void hit();
     
         static void updateTimeCallback(struct _lv_anim_t* animstruct);
 };

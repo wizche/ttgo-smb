@@ -122,7 +122,7 @@ const LV_ATTRIBUTE_MEM_ALIGN LV_ATTRIBUTE_IMG_BOX uint8_t box_map[] = {
 #endif
 };
 
-const lv_img_dsc_t box = {
+const lv_img_dsc_t block = {
   .header.always_zero = 0,
   .header.w = 25,
   .header.h = 25,

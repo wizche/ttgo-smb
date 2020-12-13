@@ -1,18 +1,18 @@
-#include "box.h"
+#include "block.h"
 
-Box::Box(lv_obj_t *mparent, int px, int py, int width, int height, BoxType mtype, UpdateSubscribe *mupdatableShape)
+Block::Block(lv_obj_t *mparent, int px, int py, int width, int height, BoxType mtype, UpdateSubscribe *mupdatableShape)
     : BasicObject(mparent, px, py, width, height)
 {
   type = mtype;
   updateSubscribe = mupdatableShape;
 }
 
-uint8_t Box::getCurrentValue()
+uint8_t Block::getCurrentValue()
 {
   return currentValue;
 }
 
-void Box::render()
+void Block::render()
 {
   static lv_style_t style;
   lv_style_init(&style);
@@ -27,7 +27,7 @@ void Box::render()
   lv_obj_set_height(boxContainer, height);
 
   lv_obj_t *boxImg = lv_img_create(boxContainer, NULL);
-  lv_img_set_src(boxImg, &box);
+  lv_img_set_src(boxImg, &block);
   lv_obj_align(boxImg, NULL, LV_ALIGN_CENTER, 0, 0);
 
   timeLabel = lv_label_create(boxContainer, NULL);
@@ -42,7 +42,7 @@ void Box::render()
   lv_anim_set_time(&boxAnim, HIT_DURATION_MS);
 }
 
-void Box::updateTime()
+void Block::updateTime()
 {
   RTC_Date curr = TTGOClass::getWatch()->rtc->getDateTime();
   uint8_t value = 0;
@@ -59,30 +59,45 @@ void Box::updateTime()
     break;
   }
 
-  Serial.printf("Updating box %d, previous %d: %d\n", type, currentValue, value);
+  Serial.printf("Updating block %d, previous %d: %d\n", type, currentValue, value);
 
-  if(currentValue != value){
+  if (currentValue != value)
+  {
     currentValue = value;
-    updateSubscribe->schedule(getCenter(), this);
+    updateSubscribe->schedule(getCenter());
   }
 }
 
-void Box::updateTimeCallback(struct _lv_anim_t *animstruct)
+void Block::updateTimeCallback(struct _lv_anim_t *animstruct)
 {
-  Box *box = (Box *)lv_obj_get_user_data((lv_obj_t *)animstruct->var);
+  Block *block = (Block *)lv_obj_get_user_data((lv_obj_t *)animstruct->var);
   char buff[3];
-  sprintf(buff, "%02d", box->currentValue);
-  lv_label_set_text(box->timeLabel, buff);
+  sprintf(buff, "%02d", block->currentValue);
+  lv_label_set_text(block->timeLabel, buff);
+  Serial.printf("Updated label to %02d\n", block->currentValue);
 }
 
-void Box::hit(int delayMs)
+void Block::hit()
 {
-  Serial.printf("Scheduling box hit in %d ms\n", delayMs);
-  lv_anim_set_delay(&boxAnim, delayMs);
-
+  if (animating)
+  {
+    //Serial.printf("Block hit already animating!\n");
+    return;
+  }
+  Serial.printf("Block hit\n");
   // TODO: Is this the best way to deal with static class methods?
   // set_user_data actually create a copy (perf?)
+  animating = true;
   lv_obj_set_user_data(boxContainer, this);
-  lv_anim_set_start_cb(&boxAnim, &Box::updateTimeCallback);
+  lv_anim_set_start_cb(&boxAnim, &Block::updateTimeCallback);
   lv_anim_start(&boxAnim);
+  lv_task_t *task = lv_task_create(Block::animation_finished, HIT_DURATION_MS * 2, LV_TASK_PRIO_MID, this);
+  lv_task_once(task);
+}
+
+void Block::animation_finished(struct _lv_task_t *task)
+{
+  Block *block = (Block *)task->user_data;
+  block->animating = false;
+  Serial.printf("Animation is finished!\n");
 }
