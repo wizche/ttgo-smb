@@ -71,7 +71,7 @@ void Gui::setupGui()
   lv_label_set_align(batteryLabelValue, LV_LABEL_ALIGN_RIGHT);
 
   // date
-  dateCloud = new Clouds(scr, 150, 70);
+  dateCloud = new Clouds(scr, 135, 50);
   dateCloud->render();
 
   lv_task_create(Gui::lv_update_task, 1000, LV_TASK_PRIO_MID, this);
@@ -88,9 +88,7 @@ void Gui::setupGui()
 
 void Gui::updateDate()
 {
-  TTGOClass *ttgo = TTGOClass::getWatch();
-  RTC_Date curr = ttgo->rtc->getDateTime();
-  dateCloud->update(curr.day, curr.month);
+  dateCloud->update();
 }
 
 void Gui::updateTime()

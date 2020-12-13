@@ -7,8 +7,12 @@ Clouds::Clouds(lv_obj_t *mparent, int px, int py)
     y = py;
 }
 
-void Clouds::update(int day, int month){
-    Serial.printf("New date %02d.%02d\n", day, month);
+void Clouds::update(){
+    RTC_Date curr = TTGOClass::getWatch()->rtc->getDateTime();
+    int mi = curr.month;
+    int day = curr.day;
+    const char *m = months[mi];
+    Serial.printf("New date %02d.%02d | %s\n", day, mi, m);
 
     char buff[3];
     sprintf(buff, "%02d", day);
@@ -16,7 +20,7 @@ void Clouds::update(int day, int month){
     lv_obj_align(dayLabel, NULL, LV_ALIGN_CENTER, 0, 0);
     lv_label_set_align(dayLabel, LV_LABEL_ALIGN_CENTER);
 
-    lv_label_set_text_fmt(monthLabel, months[month]);
+    lv_label_set_text_fmt(monthLabel, m);
     lv_obj_align(monthLabel, NULL, LV_ALIGN_CENTER, 3, 0);
     lv_label_set_align(monthLabel, LV_LABEL_ALIGN_RIGHT);
 }
@@ -37,7 +41,7 @@ void Clouds::render()
 
     cloudDayContainer = lv_cont_create(parent, NULL);
     lv_obj_add_style(cloudDayContainer, LV_OBJ_PART_MAIN, &style);
-    lv_obj_set_pos(cloudDayContainer, x-42, y-30);
+    lv_obj_set_pos(cloudDayContainer, x-84, y-10);
     lv_obj_set_size(cloudDayContainer, 50, 32);    
 
     cloudMonthContainer = lv_cont_create(parent, NULL);
@@ -64,7 +68,7 @@ void Clouds::render()
     lv_anim_set_time(&animDay, 2000);
     lv_anim_set_playback_time(&animDay, 2000);
     lv_anim_set_delay(&animDay, 500);
-    lv_anim_set_values(&animDay, x-42, LV_HOR_RES-84);
+    lv_anim_set_values(&animDay, x-84, LV_HOR_RES-130);
     lv_anim_start(&animDay);   
     lv_anim_set_path(&animDay, &path);
 

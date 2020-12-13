@@ -64,7 +64,7 @@ void Mario::update()
         acc[0] = 0.07f;
         x = initialPosition[0] - width;
         frameIndex = 0.0f;
-        maxSpeed = rand() % 4 + 4;
+        maxSpeed = rand() % 3 + 4;
         vel[0] = maxSpeed;
     }
 
@@ -75,7 +75,7 @@ void Mario::update()
     y += vel[1];
 
     lv_obj_set_pos(marioContainer, x, y);
-    Serial.printf("pos x %d;%d, jump %d, vel %.2f;%.2f, acc: %.2f;%.2f | jumps %d\n", x, y, jumping, vel[0], vel[1], acc[0], acc[1], jumpTargets.size());
+    //Serial.printf("pos x %d;%d, jump %d, vel %.2f;%.2f, acc: %.2f;%.2f | jumps %d\n", x, y, jumping, vel[0], vel[1], acc[0], acc[1], jumpTargets.size());
 
     // SPRITE SELECTION
     // when running
@@ -114,9 +114,9 @@ void Mario::update()
             float futurePos = x + (steps * vel[0]);
             float futurePosNext = x + ((steps + 1) * vel[0]);
 
-            Serial.printf("JUMP target: %d, steps %d, f1 %3.0f, f2 %3.0f, vel %.2f;%.2f, acc: %.2f;%.2f\n",
-                          targetX, steps, futurePos, futurePosNext,
-                          vel[0], vel[1], acc[0], acc[1]);
+            //Serial.printf("JUMP target: %d, steps %d, f1 %3.0f, f2 %3.0f, vel %.2f;%.2f, acc: %.2f;%.2f\n",
+            //              targetX, steps, futurePos, futurePosNext,
+            //              vel[0], vel[1], acc[0], acc[1]);
 
             if (targetX >= futurePos && targetX <= futurePosNext)
             {
