@@ -1,6 +1,6 @@
 #include "block.h"
 
-Block::Block(lv_obj_t *mparent, int px, int py, int width, int height, BoxType mtype, UpdateSubscribe *mupdatableShape)
+Block::Block(lv_obj_t *mparent, int px, int py, int width, int height, BlockType mtype, UpdateSubscribe *mupdatableShape)
     : BasicObject(mparent, px, py, width, height)
 {
   type = mtype;
@@ -26,20 +26,29 @@ void Block::render()
   lv_obj_set_width(boxContainer, width);
   lv_obj_set_height(boxContainer, height);
 
-  lv_obj_t *boxImg = lv_img_create(boxContainer, NULL);
-  lv_img_set_src(boxImg, &block);
-  lv_obj_align(boxImg, NULL, LV_ALIGN_CENTER, 0, 0);
+  if (type == BlockType::Empty)
+  {
+    lv_obj_t *boxImg = lv_img_create(boxContainer, NULL);
+    lv_img_set_src(boxImg, &emptyblock);
+    lv_obj_align(boxImg, NULL, LV_ALIGN_CENTER, 0, 0);
+  }
+  else
+  {
+    lv_obj_t *boxImg = lv_img_create(boxContainer, NULL);
+    lv_img_set_src(boxImg, &block);
+    lv_obj_align(boxImg, NULL, LV_ALIGN_CENTER, 0, 0);
 
-  timeLabel = lv_label_create(boxContainer, NULL);
-  lv_obj_align(timeLabel, NULL, LV_ALIGN_CENTER, (int)floor(width / 2.0) - 1, -1);
-  lv_label_set_text(timeLabel, "00");
+    timeLabel = lv_label_create(boxContainer, NULL);
+    lv_obj_align(timeLabel, NULL, LV_ALIGN_CENTER, (int)floor(width / 2.0) - 1, -1);
+    lv_label_set_text(timeLabel, "00");
 
-  lv_anim_init(&boxAnim);
-  lv_anim_set_var(&boxAnim, boxContainer);
-  lv_anim_set_exec_cb(&boxAnim, (lv_anim_exec_xcb_t)lv_obj_set_y);
-  lv_anim_set_values(&boxAnim, y, y - height);
-  lv_anim_set_playback_time(&boxAnim, HIT_DURATION_MS);
-  lv_anim_set_time(&boxAnim, HIT_DURATION_MS);
+    lv_anim_init(&boxAnim);
+    lv_anim_set_var(&boxAnim, boxContainer);
+    lv_anim_set_exec_cb(&boxAnim, (lv_anim_exec_xcb_t)lv_obj_set_y);
+    lv_anim_set_values(&boxAnim, y, y - height);
+    lv_anim_set_playback_time(&boxAnim, HIT_DURATION_MS);
+    lv_anim_set_time(&boxAnim, HIT_DURATION_MS);
+  }
 }
 
 void Block::updateTime()
@@ -48,21 +57,20 @@ void Block::updateTime()
   uint8_t value = 0;
   switch (type)
   {
-  case BoxType::Seconds:
+  case BlockType::Seconds:
     value = curr.second;
     break;
-  case BoxType::Minute:
+  case BlockType::Minute:
     value = curr.minute;
     break;
-  case BoxType::Hour:
+  case BlockType::Hour:
     value = curr.hour;
     break;
   }
 
-  Serial.printf("Updating block %d, previous %d: %d\n", type, currentValue, value);
-
   if (currentValue != value)
   {
+    Serial.printf("Updating block %d, previous %d: %d\n", type, currentValue, value);
     currentValue = value;
     updateSubscribe->schedule(getCenter());
   }

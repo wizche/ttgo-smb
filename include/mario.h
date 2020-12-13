@@ -11,7 +11,7 @@
 
 LV_IMG_DECLARE(mario);
 LV_IMG_DECLARE(mario_jump);
-LV_IMG_DECLARE(box);
+LV_IMG_DECLARE(block);
 
 class Mario : public UpdateSubscribe, public BasicObject
 {
@@ -33,21 +33,21 @@ private:
     static void resetMario(lv_task_t *task);
     static void jumpMario(lv_task_t *task);
 
-    float maxSpeed = 8.0;
+    float maxSpeed = 4.0;
     float vel[2] = { 0.0, 0.0 };
     float acc[2] = { 0.07, 0.25 };
     int initialPosition[2] = {0, 0};
     // timesteps
     double dt = FPS / 1000.0;
     double frameIndex = 0.0f;
-    float jumpVel = -6.5;
+    float jumpVel = -7.0;
     float jumpAcc = 0.5;
     bool left, running, jumping = false;
     std::vector<int> enabledFrames;
-    std::vector<std::pair<int, HitShape*>> jumpTargets;
+    std::vector<int> jumpTargets;
 
     // methods
-    void jump(int targetX, HitShape *hittableShape);
+    void jump(int targetX);
     int getJumpDurationMs();
 
 public:
@@ -55,7 +55,8 @@ public:
     void render();
     void update();
     void run();
-    void schedule(int position, HitShape *hittableShape);
+    void schedule(int position);
+    void stopJump();
 };
 
 #endif // __MARIO_H

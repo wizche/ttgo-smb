@@ -22,15 +22,19 @@ void Gui::setupGui()
   mario = new Mario(scr, 0, 170, 23, 46);
   mario->render();
 
-  // Boxes
-  /*
-  boxHour = new Box(scr, 26, 107);
-  boxHour->render(mario->getJumpDurationMs(), curr.hour);
+  // Blocks
 
-  boxMinutes = new Box(scr, 76, 107);
-  boxMinutes->render(mario->getJumpDurationMs(), curr.minute);
-  */
-  boxSeconds = new Box(scr, 126, 107, 25, 25, BoxType::Seconds, mario);
+  boxHour = new Block(scr, 56, 107, 25, 25, BlockType::Hour, mario);
+  boxHour->render();
+
+  Block(scr, 81, 107, 25, 25, BlockType::Empty, nullptr).render();
+
+  boxMinutes = new Block(scr, 106, 107, 25, 25, BlockType::Minute, mario);
+  boxMinutes->render();
+
+  Block(scr, 131, 107, 25, 25, BlockType::Empty, nullptr).render();
+
+  boxSeconds = new Block(scr, 156, 107, 25, 25, BlockType::Seconds, mario);
   boxSeconds->render();
 
   // header
@@ -71,7 +75,7 @@ void Gui::setupGui()
   dateCloud->render();
 
   lv_task_create(Gui::lv_update_task, 1000, LV_TASK_PRIO_MID, this);
-  lv_task_create(Gui::update, 1000/FPS, LV_TASK_PRIO_HIGH, this);
+  lv_task_create(Gui::update, 1000 / FPS, LV_TASK_PRIO_HIGH, this);
 
   updateTime();
   updateDate();
@@ -91,6 +95,8 @@ void Gui::updateDate()
 
 void Gui::updateTime()
 {
+  boxHour->updateTime();
+  boxMinutes->updateTime();
   boxSeconds->updateTime();
 }
 
@@ -147,8 +153,23 @@ void Gui::update(struct _lv_task_t *task)
 
 void Gui::updateFrame()
 {
-  if(boxSeconds->isColliding(mario)){
-    Serial.printf("**** BOX COLLIDING WITH MARIO! *********\n");
+  if (mario->isCollidingOnce(boxHour))
+  {
+    Serial.printf("**** Mario colliding with hour block *********\n");
+    boxHour->hit();
+    mario->stopJump();
+  }
+  if (mario->isCollidingOnce(boxMinutes))
+  {
+    Serial.printf("**** Mario colliding with minutes block *********\n");
+    boxMinutes->hit();
+    mario->stopJump();
+  }
+  if (mario->isCollidingOnce(boxSeconds))
+  {
+    Serial.printf("**** Mario colliding with seconds block *********\n");
+    boxSeconds->hit();
+    mario->stopJump();
   }
   mario->update();
 }

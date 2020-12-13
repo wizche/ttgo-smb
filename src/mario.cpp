@@ -1,7 +1,7 @@
 #include "mario.h"
 
 Mario::Mario(lv_obj_t *mparent, int px, int py, int mwidth, int mheight)
-    : BasicObject(mparent, px, py, mwidth, mheight) , initialPosition{px, py}
+    : BasicObject(mparent, px, py, mwidth, mheight), initialPosition{px, py}
 {
 }
 
@@ -64,7 +64,7 @@ void Mario::update()
         acc[0] = 0.07f;
         x = initialPosition[0] - width;
         frameIndex = 0.0f;
-        maxSpeed = rand() % 7 + 4;
+        maxSpeed = rand() % 4 + 4;
         vel[0] = maxSpeed;
     }
 
@@ -75,7 +75,7 @@ void Mario::update()
     y += vel[1];
 
     lv_obj_set_pos(marioContainer, x, y);
-    //Serial.printf("pos x %d;%d, jump %d, vel %.2f;%.2f, acc: %.2f;%.2f\n", x, y, jumping, vel[0], vel[1], acc[0], acc[1]);
+    Serial.printf("pos x %d;%d, jump %d, vel %.2f;%.2f, acc: %.2f;%.2f | jumps %d\n", x, y, jumping, vel[0], vel[1], acc[0], acc[1], jumpTargets.size());
 
     // SPRITE SELECTION
     // when running
@@ -102,54 +102,66 @@ void Mario::update()
     }
 
     // compute jump only if not already jumping!
-    if (vel[1] <= 0.0)
+    if (!jumping)
     {
         // lets iterate over the scheduled jump to see if there is a match!
-        std::vector<std::pair<int, HitShape *>>::iterator it = jumpTargets.begin();
+        std::vector<int>::iterator it = jumpTargets.begin();
         while (it != jumpTargets.end())
         {
-            int targetX = (*it).first;
-            HitShape *shape = (*it).second;
-            int steps = abs((int)floor(jumpVel / jumpAcc));
+            int targetX = *it;
+            // we compute half of the jump since we want to target the highest point, not when mario is back to the ground!
+            int steps = abs((int)floor(jumpVel / jumpAcc / 2.0));
             float futurePos = x + (steps * vel[0]);
             float futurePosNext = x + ((steps + 1) * vel[0]);
 
-            Serial.printf("pos %d;%d, target: %d, steps %d, f1 %3.0f, f2 %3.0f, vel %.2f;%.2f, acc: %.2f;%.2f\n",
-                          x, y, targetX, steps, futurePos, futurePosNext,
+            Serial.printf("JUMP target: %d, steps %d, f1 %3.0f, f2 %3.0f, vel %.2f;%.2f, acc: %.2f;%.2f\n",
+                          targetX, steps, futurePos, futurePosNext,
                           vel[0], vel[1], acc[0], acc[1]);
 
             if (targetX >= futurePos && targetX <= futurePosNext)
             {
-                Serial.printf("Time to jump!\n");
-                it = jumpTargets.erase(it);
-                vel[1] = jumpVel;
-                acc[1] = jumpAcc;
-                jumping = true;
-                shape->hit(getJumpDurationMs());
-            }
-            else
+                if (jumping)
+                {
+                    Serial.printf("Skipping jump to %d, already jumping\n", targetX);
+                    ++it;
+                }
+                else
+                {
+                    Serial.printf("Time to jump to hit %d!\n", targetX);
+                    it = jumpTargets.erase(it);
+                    vel[1] = jumpVel;
+                    acc[1] = jumpAcc;
+                    jumping = true;
+                }
+            } else
                 ++it;
         }
     }
 }
 
-void Mario::jump(int targetX, HitShape *hittableShape)
+void Mario::stopJump()
+{
+    Serial.printf("Mario head hit something, better stop jumping!\n");
+    vel[1] = 0.0;
+}
+
+void Mario::jump(int targetX)
 {
     if (std::any_of(jumpTargets.begin(), jumpTargets.end(),
-                    [&targetX](const std::pair<int, HitShape *> &p) { return p.first == targetX; }))
+                    [&targetX](const int &p) { return p == targetX; }))
     {
         Serial.printf("Jump target %d already in the list!\n", targetX);
     }
     else
     {
         Serial.printf("Added jump target %d to list!\n", targetX);
-        jumpTargets.push_back(std::make_pair(targetX, hittableShape));
+        jumpTargets.push_back(targetX);
     }
 }
 
-void Mario::schedule(int position, HitShape *hittableShape)
+void Mario::schedule(int position)
 {
-    jump(position, hittableShape);
+    jump(position);
 }
 
 void Mario::jumpMario(lv_task_t *task)

@@ -4,16 +4,10 @@
 #include "config.h"
 #include <cmath>
 
-// Shape that can be hit!
-class HitShape {
-   public:
-      virtual void hit(int delayMs) = 0;
-};
-
 // Whatever
 class UpdateSubscribe {
    public:
-      virtual void schedule(int position, HitShape *hittableShape) = 0;
+      virtual void schedule(int positionX) = 0;
 };
 
 
@@ -21,10 +15,13 @@ class BasicObject {
     protected:
         lv_obj_t *parent = NULL;
         int x, y, width, height = 0;
+        std::vector<BasicObject*> currentCollidingObjects;
     public:
         BasicObject(lv_obj_t *mparent, int px, int py, int width, int height);
         int getCenter();
-        bool isColliding(BasicObject *otherObject);
+        // Return true the first time two object collide and false the collision is over, 
+        // usefull to trigger one time effects
+        bool isCollidingOnce(BasicObject *otherObject);
 };
 
 #endif //__HITSHAPE_H

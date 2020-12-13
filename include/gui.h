@@ -3,14 +3,14 @@
 
 #include "config.h"
 
-#include "box.h"
+#include "block.h"
 #include "mario.h"
 #include "clouds.h"
 
 LV_FONT_DECLARE(emulogic_10);
 LV_FONT_DECLARE(emulogic_11);
 LV_IMG_DECLARE(world);
-LV_IMG_DECLARE(box);
+LV_IMG_DECLARE(block);
 LV_IMG_DECLARE(coin);
 
 class Gui
@@ -28,9 +28,8 @@ private:
   //Mario *marioHour, *marioMinutes, *marioSeconds = nullptr;
   Mario *mario;
   
-  Box *boxHour, *boxMinutes, *boxSeconds = nullptr;
+  Block *boxHour, *boxMinutes, *boxSeconds = nullptr;
   Clouds *dateCloud = nullptr;
-
   Gestures process_gesture(lv_event_t event);
 
   static void lv_update_task(struct _lv_task_t *);
