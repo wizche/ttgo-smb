@@ -10,6 +10,8 @@
 #define WATCH_FLAG_BMA_IRQ _BV(3)
 #define WATCH_FLAG_AXP_IRQ _BV(4)
 
+#define FPS 30
+
 enum ModTimeUnit
 {
     set = 0,

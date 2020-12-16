@@ -20,7 +20,7 @@ class Clouds {
     public:
         Clouds(lv_obj_t *mparent, int px, int py);
         void render();
-        void update(int day, int month);
+        void update();
 };
 
 #endif //__CLOUD_H

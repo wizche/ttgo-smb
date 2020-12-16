@@ -2,8 +2,8 @@
 
 void Gui::setupGui()
 {
-  Serial.printf("Screensize: %dx%d\n", LV_HOR_RES, LV_VER_RES);
   lv_obj_t *scr = lv_scr_act();
+  Serial.printf("Screensize: %dx%d | %p\n", LV_HOR_RES, LV_VER_RES, scr);
 
   static lv_style_t style;
   lv_style_init(&style);
@@ -18,26 +18,24 @@ void Gui::setupGui()
   lv_img_set_src(img_bin, &world);
   lv_obj_align(img_bin, NULL, LV_ALIGN_CENTER, 0, 0);
 
-  RTC_Date curr = TTGOClass::getWatch()->rtc->getDateTime();
   // Characters
-  marioHour = new Mario(scr, 27, 170);
-  marioHour->render();
+  mario = new Mario(scr, 0, 170, 23, 46);
+  mario->render();
 
-  marioMinutes = new Mario(scr, 77, 170);
-  marioMinutes->render();
+  // Blocks
 
-  marioSeconds = new Mario(scr, 127, 170);
-  marioSeconds->render();
+  boxHour = new Block(scr, 56, 107, 25, 25, BlockType::Hour, mario);
+  boxHour->render();
 
-  // Boxes
-  boxHour = new Box(scr, 26, 107);
-  boxHour->render(marioHour->getJumpDurationMs(), curr.hour);
+  Block(scr, 81, 107, 25, 25, BlockType::Empty, nullptr).render();
 
-  boxMinutes = new Box(scr, 76, 107);
-  boxMinutes->render(marioMinutes->getJumpDurationMs(), curr.minute);
+  boxMinutes = new Block(scr, 106, 107, 25, 25, BlockType::Minute, mario);
+  boxMinutes->render();
 
-  boxSeconds = new Box(scr, 126, 107);
-  boxSeconds->render(marioSeconds->getJumpDurationMs(), curr.second);
+  Block(scr, 131, 107, 25, 25, BlockType::Empty, nullptr).render();
+
+  boxSeconds = new Block(scr, 156, 107, 25, 25, BlockType::Seconds, mario);
+  boxSeconds->render();
 
   // header
 
@@ -73,14 +71,16 @@ void Gui::setupGui()
   lv_label_set_align(batteryLabelValue, LV_LABEL_ALIGN_RIGHT);
 
   // date
-  dateCloud = new Clouds(scr, 150, 70);
+  dateCloud = new Clouds(scr, 135, 50);
   dateCloud->render();
 
   lv_task_create(Gui::lv_update_task, 1000, LV_TASK_PRIO_MID, this);
+  lv_task_create(Gui::update, 1000 / FPS, LV_TASK_PRIO_HIGH, this);
 
   updateTime();
   updateDate();
   updateBatteryLevel();
+  mario->run();
 
   lv_obj_set_user_data(scr, this);
   lv_obj_set_event_cb(scr, Gui::event_handler);
@@ -88,30 +88,14 @@ void Gui::setupGui()
 
 void Gui::updateDate()
 {
-  TTGOClass *ttgo = TTGOClass::getWatch();
-  RTC_Date curr = ttgo->rtc->getDateTime();
-  dateCloud->update(curr.day, curr.month);
+  dateCloud->update();
 }
 
 void Gui::updateTime()
 {
-  TTGOClass *ttgo = TTGOClass::getWatch();
-  RTC_Date curr = ttgo->rtc->getDateTime();
-
-  marioSeconds->jump();
-  boxSeconds->hit(curr.second);
-
-  if (curr.minute != boxMinutes->getCurrentValue())
-  {
-    marioMinutes->jump();
-    boxMinutes->hit(curr.minute);
-  }
-
-  if (curr.hour != boxHour->getCurrentValue())
-  {
-    marioHour->jump();
-    boxHour->hit(curr.hour);
-  }
+  boxHour->updateTime();
+  boxMinutes->updateTime();
+  boxSeconds->updateTime();
 }
 
 void Gui::updateBatteryLevel()
@@ -157,4 +141,33 @@ void Gui::lv_update_task(struct _lv_task_t *task)
 {
   Gui *gui = (Gui *)task->user_data;
   gui->updateTime();
+}
+
+void Gui::update(struct _lv_task_t *task)
+{
+  Gui *gui = (Gui *)task->user_data;
+  gui->updateFrame();
+}
+
+void Gui::updateFrame()
+{
+  if (mario->isCollidingOnce(boxHour))
+  {
+    Serial.printf("**** Mario colliding with hour block *********\n");
+    boxHour->hit();
+    mario->stopJump();
+  }
+  if (mario->isCollidingOnce(boxMinutes))
+  {
+    Serial.printf("**** Mario colliding with minutes block *********\n");
+    boxMinutes->hit();
+    mario->stopJump();
+  }
+  if (mario->isCollidingOnce(boxSeconds))
+  {
+    Serial.printf("**** Mario colliding with seconds block *********\n");
+    boxSeconds->hit();
+    mario->stopJump();
+  }
+  mario->update();
 }
