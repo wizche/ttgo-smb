@@ -33,3 +33,4 @@ If everything goes well it should generate `lvgl.{html, js, wasm}` assets in the
 ## Credits
 * Emulogic - Truetype Font from Freaky Fonts
 * Sprites from [The Spriters Resource](https://www.spriters-resource.com/nes/supermariobros/)
+* [PineTime Watch Faces in your Web Browser with WebAssembly](https://lupyuen.github.io/pinetime-rust-mynewt/articles/simulator)
