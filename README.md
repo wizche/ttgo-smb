@@ -4,6 +4,8 @@
 
 [Check it out directly in your browser thanks to WebAssembly!](https://htmlpreview.github.io/?https://raw.githubusercontent.com/wizche/ttgo-smb/master/simulator/lvgl.html)
 
+If the link doesnt work try this altenative (which uses CDN cache and may not be up-to-date): https://rawcdn.githack.com/wizche/ttgo-smb/cfadd569e8d008482849b5b52bc6d1bd94ee15d6/simulator/lvgl.html
+
 ## Build
 
 ### TTGO T-Watch 2020
