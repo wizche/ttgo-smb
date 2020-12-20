@@ -16,7 +16,7 @@ bool BasicObject::isCollidingOnce(BasicObject *other)
     if (std::any_of(currentCollidingObjects.begin(), currentCollidingObjects.end(),
                     [&other](const BasicObject *p) { return p == other; }))
     {
-        Serial.printf("Already colliding!");
+        //custom_log("Already colliding!");
         already_colliding = true;
     }
 

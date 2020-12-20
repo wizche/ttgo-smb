@@ -1,9 +1,11 @@
 #include "gui.h"
 
+Gui::Gui(AbstractDevice *ad) : abstractDevice(ad) {}
+
 void Gui::setupGui()
 {
   lv_obj_t *scr = lv_scr_act();
-  Serial.printf("Screensize: %dx%d | %p\n", LV_HOR_RES, LV_VER_RES, scr);
+  custom_log("Screensize: %dx%d | %p\n", LV_HOR_RES, LV_VER_RES, scr);
 
   static lv_style_t style;
   lv_style_init(&style);
@@ -24,17 +26,17 @@ void Gui::setupGui()
 
   // Blocks
 
-  boxHour = new Block(scr, 56, 107, 25, 25, BlockType::Hour, mario);
+  boxHour = new Block(abstractDevice, scr, 56, 107, 25, 25, BlockType::Hour, mario);
   boxHour->render();
 
-  Block(scr, 81, 107, 25, 25, BlockType::Empty, nullptr).render();
+  Block(abstractDevice, scr, 81, 107, 25, 25, BlockType::Empty, nullptr).render();
 
-  boxMinutes = new Block(scr, 106, 107, 25, 25, BlockType::Minute, mario);
+  boxMinutes = new Block(abstractDevice, scr, 106, 107, 25, 25, BlockType::Minute, mario);
   boxMinutes->render();
 
-  Block(scr, 131, 107, 25, 25, BlockType::Empty, nullptr).render();
+  Block(abstractDevice, scr, 131, 107, 25, 25, BlockType::Empty, nullptr).render();
 
-  boxSeconds = new Block(scr, 156, 107, 25, 25, BlockType::Seconds, mario);
+  boxSeconds = new Block(abstractDevice, scr, 156, 107, 25, 25, BlockType::Seconds, mario);
   boxSeconds->render();
 
   // header
@@ -71,7 +73,7 @@ void Gui::setupGui()
   lv_label_set_align(batteryLabelValue, LV_LABEL_ALIGN_RIGHT);
 
   // date
-  dateCloud = new Clouds(scr, 135, 50);
+  dateCloud = new Clouds(abstractDevice, scr, 135, 50);
   dateCloud->render();
 
   lv_task_create(Gui::lv_update_task, 1000, LV_TASK_PRIO_MID, this);
@@ -93,6 +95,7 @@ void Gui::updateDate()
 
 void Gui::updateTime()
 {
+  this->updateDate();
   boxHour->updateTime();
   boxMinutes->updateTime();
   boxSeconds->updateTime();
@@ -100,12 +103,13 @@ void Gui::updateTime()
 
 void Gui::updateBatteryLevel()
 {
-  TTGOClass *ttgo = TTGOClass::getWatch();
-  int p = ttgo->power->getBattPercentage();
-  lv_label_set_text(batteryLabelValue, String(p).c_str());
+  int p = abstractDevice->getBatteryLevel();
+  std::stringstream ss;
+  ss << p;
+  lv_label_set_text(batteryLabelValue, ss.str().c_str());
   lv_label_set_align(batteryLabelValue, LV_LABEL_ALIGN_RIGHT);
   lv_obj_align(batteryLabelValue, NULL, LV_ALIGN_IN_TOP_RIGHT, -10, 22);
-  Serial.printf("Battery is %2d %%\n", p);
+  custom_log("Battery is %2d %%\n", p);
 }
 
 void Gui::updateStepCounter(unsigned int steps)
@@ -114,7 +118,7 @@ void Gui::updateStepCounter(unsigned int steps)
   sprintf(buff, "%06u", steps);
   lv_label_set_text(stepLabelValue, buff);
   lv_obj_align(stepLabelValue, NULL, LV_ALIGN_IN_TOP_LEFT, 10, 22);
-  Serial.printf("Steps %06d\n", steps);
+  custom_log("Steps %06d\n", steps);
 }
 
 void Gui::updateWakeupCount()
@@ -153,19 +157,19 @@ void Gui::updateFrame()
 {
   if (mario->isCollidingOnce(boxHour))
   {
-    Serial.printf("**** Mario colliding with hour block *********\n");
+    custom_log("**** Mario colliding with hour block *********\n");
     boxHour->hit();
     mario->stopJump();
   }
   if (mario->isCollidingOnce(boxMinutes))
   {
-    Serial.printf("**** Mario colliding with minutes block *********\n");
+    custom_log("**** Mario colliding with minutes block *********\n");
     boxMinutes->hit();
     mario->stopJump();
   }
   if (mario->isCollidingOnce(boxSeconds))
   {
-    Serial.printf("**** Mario colliding with seconds block *********\n");
+    custom_log("**** Mario colliding with seconds block *********\n");
     boxSeconds->hit();
     mario->stopJump();
   }

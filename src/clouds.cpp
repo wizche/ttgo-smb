@@ -1,18 +1,19 @@
 #include "clouds.h"
 
-Clouds::Clouds(lv_obj_t *mparent, int px, int py)
+Clouds::Clouds(AbstractDevice *ad, lv_obj_t *mparent, int px, int py)
 {
+    abstractDevice = ad;
     parent = mparent;
     x = px;
     y = py;
 }
 
 void Clouds::update(){
-    RTC_Date curr = TTGOClass::getWatch()->rtc->getDateTime();
+    auto curr = abstractDevice->getDateTime();
     int mi = curr.month;
     int day = curr.day;
     const char *m = months[mi];
-    Serial.printf("New date %02d.%02d | %s\n", day, mi, m);
+    custom_log("New date %02d.%02d | %s\n", day, mi, m);
 
     char buff[3];
     sprintf(buff, "%02d", day);
