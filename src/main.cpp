@@ -104,7 +104,7 @@ void low_energy()
 bool syncRtc2Ntp()
 {
     //connect to WiFi
-    Serial.printf("Connecting to %s\n", ssid);
+    custom_log("Connecting to %s\n", ssid);
     WiFi.begin(ssid, ssid_passphrase);
     // after 6 sec if WiFi is not found abort and avoid locking the setup
     int timeoutMs = 6000;
@@ -115,12 +115,12 @@ bool syncRtc2Ntp()
         Serial.print(".");
         if (timeoutMs <= 0)
         {
-            Serial.printf("\nWifi connection timed-out!\n");
+            custom_log("\nWifi connection timed-out!\n");
             WiFi.mode(WIFI_OFF);
             return false;
         }
     }
-    Serial.printf("\nConnected to %s \n", ssid);
+    custom_log("\nConnected to %s \n", ssid);
 
     //init and get the time from NTP server
     configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
@@ -141,7 +141,7 @@ bool syncRtc2Ntp()
     updateRTC.minute = timeinfo.tm_min;
     updateRTC.second = timeinfo.tm_sec;
     ttgo->rtc->setDateTime(updateRTC);
-    Serial.printf("RTC time synched with NTP %2d.%2d.%4d\n", updateRTC.day, updateRTC.month, updateRTC.year);
+    custom_log("RTC time synched with NTP %2d.%2d.%4d\n", updateRTC.day, updateRTC.month, updateRTC.year);
 
     //disconnect WiFi as it's no longer needed
     WiFi.disconnect(true);
@@ -233,7 +233,7 @@ void setup()
 
     //Check if the RTC clock matches, if not, use compile time
     ttgo->rtc->check();
-    Serial.printf("RTC time: %s\n", ttgo->rtc->formatDateTime());
+    custom_log("RTC time: %s\n", ttgo->rtc->formatDateTime());
 
     if (tryNTPtime)
     {
@@ -242,9 +242,9 @@ void setup()
     }
 
     ttgo->rtc->syncToSystem();
-    Serial.printf("RTC time: %s\n", ttgo->rtc->formatDateTime());
+    custom_log("RTC time: %s\n", ttgo->rtc->formatDateTime());
 
-    gui = new Gui();
+    gui = new Gui(new AbstractDevice());
     gui->setupGui();
 }
 
@@ -304,7 +304,7 @@ void loop()
             //! setp counter
             if (ttgo->bma->isStepCounter())
             {
-                Serial.printf("Stepcounter: %d\n", ttgo->bma->getCounter());
+                custom_log("Stepcounter: %d\n", ttgo->bma->getCounter());
                 gui->updateStepCounter(ttgo->bma->getCounter());
             }
             break;
@@ -326,7 +326,7 @@ void loop()
             if (ttgo->power->isPEKShortPressIRQ())
             {
                 Serial.println("PEK Short press");
-                Serial.printf("Current time: %s\n", ttgo->rtc->formatDateTime());
+                custom_log("Current time: %s\n", ttgo->rtc->formatDateTime());
                 ttgo->power->clearIRQ();
                 low_energy();
                 return;

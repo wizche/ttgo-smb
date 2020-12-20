@@ -6,6 +6,7 @@
 #include "block.h"
 #include "mario.h"
 #include "clouds.h"
+#include "abstractdevice.h"
 
 LV_FONT_DECLARE(emulogic_10);
 LV_FONT_DECLARE(emulogic_11);
@@ -16,6 +17,7 @@ LV_IMG_DECLARE(coin);
 class Gui
 {
 private:
+  AbstractDevice *abstractDevice;
   lv_style_t timeStyle;
   lv_obj_t *mainView = nullptr;
   lv_obj_t *batteryLabelValue = nullptr;
@@ -38,6 +40,8 @@ private:
   void sleep_task(struct _lv_task_t *task);
 
 public:
+  Gui(AbstractDevice *ad);
+
   void setupGui();
   void updateTime();
   void updateDate();

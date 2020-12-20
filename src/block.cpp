@@ -1,8 +1,9 @@
 #include "block.h"
 
-Block::Block(lv_obj_t *mparent, int px, int py, int width, int height, BlockType mtype, UpdateSubscribe *mupdatableShape)
+Block::Block(AbstractDevice *ad, lv_obj_t *mparent, int px, int py, int width, int height, BlockType mtype, UpdateSubscribe *mupdatableShape)
     : BasicObject(mparent, px, py, width, height)
 {
+  abstractDevice = ad;
   type = mtype;
   updateSubscribe = mupdatableShape;
 }
@@ -53,7 +54,7 @@ void Block::render()
 
 void Block::updateTime()
 {
-  RTC_Date curr = TTGOClass::getWatch()->rtc->getDateTime();
+  auto curr = abstractDevice->getDateTime();
   uint8_t value = 0;
   switch (type)
   {
@@ -66,11 +67,14 @@ void Block::updateTime()
   case BlockType::Hour:
     value = curr.hour;
     break;
+  default:
+    value = -1;
+    break;
   }
 
   if (currentValue != value)
   {
-    Serial.printf("Updating block %d, previous %d: %d\n", type, currentValue, value);
+    custom_log("Updating block %d, previous %d: %d\n", type, currentValue, value);
     currentValue = value;
     updateSubscribe->schedule(getCenter());
   }
@@ -82,17 +86,17 @@ void Block::updateTimeCallback(struct _lv_anim_t *animstruct)
   char buff[3];
   sprintf(buff, "%02d", block->currentValue);
   lv_label_set_text(block->timeLabel, buff);
-  Serial.printf("Updated label to %02d\n", block->currentValue);
+  custom_log("Updated label to %02d\n", block->currentValue);
 }
 
 void Block::hit()
 {
   if (animating)
   {
-    //Serial.printf("Block hit already animating!\n");
+    //custom_log("Block hit already animating!\n");
     return;
   }
-  Serial.printf("Block hit\n");
+  custom_log("Block hit\n");
   // TODO: Is this the best way to deal with static class methods?
   // set_user_data actually create a copy (perf?)
   animating = true;
@@ -107,5 +111,5 @@ void Block::animation_finished(struct _lv_task_t *task)
 {
   Block *block = (Block *)task->user_data;
   block->animating = false;
-  Serial.printf("Animation is finished!\n");
+  custom_log("Animation is finished!\n");
 }

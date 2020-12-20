@@ -9,7 +9,7 @@
 
 #define OFFSET -72
 
-LV_IMG_DECLARE(mario);
+LV_IMG_DECLARE(mario_player);
 LV_IMG_DECLARE(mario_jump);
 LV_IMG_DECLARE(block);
 
@@ -43,7 +43,7 @@ private:
     float jumpVel = -7.0;
     float jumpAcc = 0.5;
     bool left, running, jumping = false;
-    std::vector<int> enabledFrames;
+    std::vector<int> enabledFrames = {0};;
     std::vector<int> jumpTargets;
 
     // methods

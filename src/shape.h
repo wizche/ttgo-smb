@@ -2,6 +2,8 @@
 #define __HITSHAPE_H
 
 #include "config.h"
+#include "lvgl/lvgl.h"
+#include <vector>
 #include <cmath>
 
 // Whatever
