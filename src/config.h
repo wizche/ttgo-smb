@@ -39,5 +39,6 @@ enum Gestures
 #include <LilyGoWatch.h>
 #else
 #define custom_log printf
+#include <lvgl.h>
 #endif
 #endif //__CONFIG_H

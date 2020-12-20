@@ -5,6 +5,8 @@
 #include "datetime.h"
 
 class AbstractDevice {
+    private:
+        DateTime currentDateTime = DateTime(23, 11, 2020, 23, 59, 59);
     public:
         int getBatteryLevel();
         DateTime getDateTime();

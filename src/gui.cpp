@@ -95,6 +95,7 @@ void Gui::updateDate()
 
 void Gui::updateTime()
 {
+  this->updateDate();
   boxHour->updateTime();
   boxMinutes->updateTime();
   boxSeconds->updateTime();

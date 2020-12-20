@@ -15,7 +15,6 @@ void Clouds::update(){
     const char *m = months[mi];
     custom_log("New date %02d.%02d | %s\n", day, mi, m);
 
-
     char buff[3];
     sprintf(buff, "%02d", day);
     lv_label_set_text_fmt(dayLabel, buff);

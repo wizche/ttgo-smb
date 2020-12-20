@@ -86,7 +86,7 @@ void Block::updateTimeCallback(struct _lv_anim_t *animstruct)
   char buff[3];
   sprintf(buff, "%02d", block->currentValue);
   lv_label_set_text(block->timeLabel, buff);
-  custom_log("Updated label to %02d\n", block->currentValue);
+  //custom_log("Updated label to %02d\n", block->currentValue);
 }
 
 void Block::hit()

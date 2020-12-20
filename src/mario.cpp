@@ -53,7 +53,7 @@ void Mario::update()
 
     if (abs(vel[0]) > maxSpeed)
     {
-        custom_log("Max speed!\n");
+        //custom_log("Max speed!\n");
         vel[0] -= 0.05 * vel[0] / abs(vel[0]);
         acc[0] = 0.0f;
     }

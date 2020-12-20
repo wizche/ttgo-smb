@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="en-us" style="background-color: #b0b0b0;">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <title>TTGO Super Mario Bros Simulator</title>
+  <style>
+    body {
+      font-family: arial;
+      margin: 0;
+      padding: none;
+    }
+
+    .emscripten {
+      padding-right: 0;
+      margin-left: auto;
+      margin-right: auto;
+      display: block;
+    }
+
+    div.emscripten {
+      text-align: center;
+    }
+
+    div.emscripten_border {
+      border: 1px solid black;
+      background-color: black;
+    }
+
+    /* the canvas *must not* have any border or padding, or mouse coords will be wrong */
+    canvas.emscripten {
+      border: 0px none;
+      background-color: black;
+    }
+
+    #emscripten_logo {
+      display: inline-block;
+      margin: 0;
+    }
+
+    .spinner {
+      height: 30px;
+      width: 30px;
+      margin: 0;
+      margin-top: 20px;
+      margin-left: 20px;
+      display: inline-block;
+      vertical-align: top;
+
+      -webkit-animation: rotation .8s linear infinite;
+      -moz-animation: rotation .8s linear infinite;
+      -o-animation: rotation .8s linear infinite;
+      animation: rotation 0.8s linear infinite;
+
+      border-left: 5px solid rgb(235, 235, 235);
+      border-right: 5px solid rgb(235, 235, 235);
+      border-bottom: 5px solid rgb(235, 235, 235);
+      border-top: 5px solid rgb(120, 120, 120);
+
+      border-radius: 100%;
+      background-color: rgb(189, 215, 46);
+    }
+
+    @-webkit-keyframes rotation {
+      from {
+        -webkit-transform: rotate(0deg);
+      }
+
+      to {
+        -webkit-transform: rotate(360deg);
+      }
+    }
+
+    @-moz-keyframes rotation {
+      from {
+        -moz-transform: rotate(0deg);
+      }
+
+      to {
+        -moz-transform: rotate(360deg);
+      }
+    }
+
+    @-o-keyframes rotation {
+      from {
+        -o-transform: rotate(0deg);
+      }
+
+      to {
+        -o-transform: rotate(360deg);
+      }
+    }
+
+    @keyframes rotation {
+      from {
+        transform: rotate(0deg);
+      }
+
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    #status {
+      display: inline-block;
+      vertical-align: top;
+      margin-top: 30px;
+      margin-left: 20px;
+      font-weight: bold;
+      color: rgb(120, 120, 120);
+    }
+
+    #progress {
+      height: 20px;
+      width: 300px;
+    }
+
+    #controls {
+      display: inline-block;
+      float: right;
+      vertical-align: top;
+      margin-top: 30px;
+      margin-right: 20px;
+    }
+
+    #output {
+      width: 100%;
+      height: 800px;
+      margin: 0 auto;
+      margin-top: 10px;
+      border-left: 0px;
+      border-right: 0px;
+      padding-left: 0px;
+      padding-right: 0px;
+      display: block;
+      background-color: black;
+      color: white;
+      font-family: 'Lucida Console', Monaco, monospace;
+      font-size: x-small;
+      outline: none;
+    }
+  </style>
+</head>
+
+<body style="font-size:small">
+  <div class="spinner" id='spinner'></div>
+  <div class="emscripten" id="status">Downloading...</div>
+
+  <span id='controls' style="visibility: hidden;">
+    <span><input type="checkbox" id="resize">Resize</span>
+    <span><input type="checkbox" id="pointerLock" checked>Lock&nbsp;&nbsp;</span>
+    <span><input type="button" value="Fullscreen"
+        onclick="Module.requestFullscreen(document.getElementById('pointerLock').checked, 
+                                                                            document.getElementById('resize').checked)">
+    </span>
+  </span>
+
+  <div class="emscripten">
+    <progress value="0" max="100" id="progress" hidden=1></progress>
+  </div>
+
+
+  <div class="emscripten_border">
+    <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()" tabindex=-1></canvas>
+  </div>
+  <textarea id="output" rows="8"></textarea>
+
+  <script type='text/javascript'>
+    var statusElement = document.getElementById('status');
+    var progressElement = document.getElementById('progress');
+    var spinnerElement = document.getElementById('spinner');
+
+    var Module = {
+      preRun: [],
+      postRun: [],
+      print: (function () {
+        var element = document.getElementById('output');
+        if (element) element.value = ''; // clear browser cache
+        return function (text) {
+          if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
+          // These replacements are necessary if you render to raw HTML
+          //text = text.replace(/&/g, "&amp;");
+          //text = text.replace(/</g, "&lt;");
+          //text = text.replace(/>/g, "&gt;");
+          //text = text.replace('\n', '<br>', 'g');
+          console.log(text);
+          if (element) {
+            element.value += text + "\n";
+            element.scrollTop = element.scrollHeight; // focus on bottom
+          }
+        };
+      })(),
+      printErr: function (text) {
+        if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
+        console.error(text);
+      },
+      canvas: (function () {
+        var canvas = document.getElementById('canvas');
+
+        // As a default initial behavior, pop up an alert when webgl context is lost. To make your
+        // application robust, you may want to override this behavior before shipping!
+        // See http://www.khronos.org/registry/webgl/specs/latest/1.0/#5.15.2
+        canvas.addEventListener("webglcontextlost", function (e) { alert('WebGL context lost. You will need to reload the page.'); e.preventDefault(); }, false);
+
+        return canvas;
+      })(),
+      setStatus: function (text) {
+        if (!Module.setStatus.last) Module.setStatus.last = { time: Date.now(), text: '' };
+        if (text === Module.setStatus.last.text) return;
+        var m = text.match(/([^(]+)\((\d+(\.\d+)?)\/(\d+)\)/);
+        var now = Date.now();
+        if (m && now - Module.setStatus.last.time < 30) return; // if this is a progress update, skip it if too soon
+        Module.setStatus.last.time = now;
+        Module.setStatus.last.text = text;
+        if (m) {
+          text = m[1];
+          progressElement.value = parseInt(m[2]) * 100;
+          progressElement.max = parseInt(m[4]) * 100;
+          progressElement.hidden = false;
+          spinnerElement.hidden = false;
+        } else {
+          progressElement.value = null;
+          progressElement.max = null;
+          progressElement.hidden = true;
+          if (!text) spinnerElement.style.display = 'none';
+        }
+        statusElement.innerHTML = text;
+      },
+      totalDependencies: 0,
+      monitorRunDependencies: function (left) {
+        this.totalDependencies = Math.max(this.totalDependencies, left);
+        Module.setStatus(left ? 'Preparing... (' + (this.totalDependencies - left) + '/' + this.totalDependencies + ')' : 'All downloads complete.');
+      }
+    };
+    Module.setStatus('Downloading...');
+    window.onerror = function (event) {
+      // TODO: do not warn on ok events like simulating an infinite loop or exitStatus
+      Module.setStatus('Exception thrown, see JavaScript console');
+      spinnerElement.style.display = 'none';
+      Module.setStatus = function (text) {
+        if (text) Module.printErr('[post-exception status] ' + text);
+      };
+    };
+  </script>
+  <!--  Custom Script  -->
+  <script type="text/javascript">
+    /// Rendering Parameters
+    const DISPLAY_SCALE = 2;  //  Scale the canvas width and height
+    const DISPLAY_BYTES_PER_PIXEL = 4;  //  4 bytes per pixel: RGBA
+    const DEMO_MODE = false;  //  Set to true to see demo widget, false to see PineTime Watch Face
+
+    function updateDateTime() {
+        const now = new Date();
+        Module._update_date_time(
+          now.getDate(),
+          now.getMonth(),
+          now.getFullYear(),
+          now.getHours(),
+          now.getMinutes(),
+          now.getSeconds());
+      }
+
+    /// In JavaScript: Create the Watch Face in WebAssembly
+    function renderCanvas() {
+      Module.print(`In JavaScript: Rendering canvas...`);
+
+      //  Init LVGL Display in WebAssembly
+      Module._init_display();
+
+      Module.print(`In JavaScript: Starting simulator!...`);
+      Module._init_simulator();
+
+      //  Render Watch Face to the WebAssembly Display Buffer
+      Module._render_display();
+
+      //  Draw the Watch Face
+      updateCanvas();
+
+      updateDateTime();
+      window.setInterval(updateDateTime, 1000);
+    }
+
+    /// In JavaScript: Update the Watch Face time in WebAssembly and render the WebAssembly Display Buffer to the HTML Canvas
+    function updateCanvas() {
+      //Module.print(`In JavaScript: Updating canvas...`);
+      Module._render_display();
+
+      var width = Module._get_display_width();
+      var height = Module._get_display_height();
+
+      //  Resize the canvas to TTGO dimensions (240 x 240)
+      if (
+        Module.canvas.width != width * DISPLAY_SCALE ||
+        Module.canvas.height != height * DISPLAY_SCALE
+      ) {
+        Module.canvas.width = width * DISPLAY_SCALE;
+        Module.canvas.height = height * DISPLAY_SCALE;
+      }
+
+      //  Fetch the canvas pixels
+      var ctx = Module.canvas.getContext('2d');
+      var imageData = ctx.getImageData(0, 0, width * DISPLAY_SCALE, height * DISPLAY_SCALE);
+      var data = imageData.data;
+
+      //  Copy the pixels from the WebAssembly Display Buffer to the canvas
+      var addr = Module._get_display_buffer();
+      //Module.print(`In JavaScript: get_display_buffer() returned ${toHex(addr)}`);          
+      for (var y = 0; y < height; y++) {
+        //  Scale the pixels vertically to fill the canvas
+        for (var ys = 0; ys < DISPLAY_SCALE; ys++) {
+          for (var x = 0; x < width; x++) {
+            //  Copy from src to dest with scaling
+            const src = ((y * width) + x) * DISPLAY_BYTES_PER_PIXEL;
+            const dest = ((((y * DISPLAY_SCALE + ys) * width) + x) * DISPLAY_BYTES_PER_PIXEL)
+              * DISPLAY_SCALE;
+            //  Scale the pixels horizontally to fill the canvas
+            for (var xs = 0; xs < DISPLAY_SCALE; xs++) {
+              const dest2 = dest + xs * DISPLAY_BYTES_PER_PIXEL;
+              //  Copy 4 bytes: RGBA
+              for (var b = 0; b < DISPLAY_BYTES_PER_PIXEL; b++) {
+                data[dest2 + b] = Module.HEAPU8[addr + src + b];
+              }
+            }
+          }
+        }
+      }
+
+      //  Paint the canvas
+      ctx.putImageData(imageData, 0, 0);
+      sleepMilliseconds = 1000.0 / 30.0
+      //  Update the Watch Face at the next minute
+      //Module.print(`In JavaScript: Sleeping ${sleepMilliseconds} ms...`);
+      window.setTimeout(
+        updateCanvas,
+        sleepMilliseconds
+      );
+    }
+
+    /// Wait for emscripten to be initialised
+    Module.onRuntimeInitialized = function () {
+      //  Render LVGL to HTML Canvas
+      renderCanvas();
+    };
+
+    /// Convert i to hexadecimal
+    function toHex(i) { return "0x" + Number(i).toString(16); }
+
+  </script>
+  <!--  End of Custom Script  -->
+  <script async type="text/javascript" src="lvgl.js"></script>
+</body>
+
+</html>

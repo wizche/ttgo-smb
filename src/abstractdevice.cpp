@@ -1,5 +1,24 @@
 #include "abstractdevice.h"
 
+#ifdef SIMULATOR
+
+DateTime AbstractDevice::getDateTime()
+{
+    return currentDateTime;
+}
+
+void AbstractDevice::setDateTime(DateTime newDateTime)
+{
+    this->currentDateTime = newDateTime;
+}
+
+int AbstractDevice::getBatteryLevel()
+{
+    return 100;
+}
+
+#else
+
 DateTime AbstractDevice::getDateTime()
 {
     RTC_Date curr = TTGOClass::getWatch()->rtc->getDateTime();
@@ -12,6 +31,8 @@ void AbstractDevice::setDateTime(DateTime newDateTime)
     TTGOClass::getWatch()->rtc->setDateTime(newRtcDate);
 }
 
-int AbstractDevice::getBatteryLevel(){
+int AbstractDevice::getBatteryLevel()
+{
     return TTGOClass::getWatch()->power->getBattPercentage();
 }
+#endif
