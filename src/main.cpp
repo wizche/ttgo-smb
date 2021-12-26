@@ -165,17 +165,20 @@ void setup()
     //Initialize TWatch
     ttgo->begin();
     ttgo->openBL();
-
+    
     // Turn on the IRQ used
     ttgo->power->adc1Enable(AXP202_BATT_VOL_ADC1 | AXP202_BATT_CUR_ADC1 | AXP202_VBUS_VOL_ADC1 | AXP202_VBUS_CUR_ADC1, AXP202_ON);
     ttgo->power->enableIRQ(AXP202_VBUS_REMOVED_IRQ | AXP202_VBUS_CONNECT_IRQ | AXP202_CHARGING_FINISHED_IRQ, AXP202_ON);
     ttgo->power->clearIRQ();
 
+    
     // Turn off unused power
-    ttgo->power->setPowerOutPut(AXP202_EXTEN, AXP202_OFF);
-    ttgo->power->setPowerOutPut(AXP202_DCDC2, AXP202_OFF);
-    ttgo->power->setPowerOutPut(AXP202_LDO3, AXP202_OFF);
+    // according to https://github.com/Xinyuan-LilyGO/TTGO_TWatch_Library/blob/master/docs/watch_2020_v2.md
+    // TFT/TOUCHT
+    // ttgo->power->setPowerOutPut(AXP202_LDO3, AXP202_OFF);
+    // GPS Module
     ttgo->power->setPowerOutPut(AXP202_LDO4, AXP202_OFF);
+    
 
     // Enable BMA423 interrupt ，
     // The default interrupt configuration,
@@ -228,7 +231,6 @@ void setup()
             }
         },
         FALLING);
-
     ttgo->lvgl_begin();
 
     //Check if the RTC clock matches, if not, use compile time
